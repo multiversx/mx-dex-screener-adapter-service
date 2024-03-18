@@ -23,7 +23,6 @@ export class DynamicModuleUtils {
       imports: [ApiConfigModule.forRoot(configuration)],
       useFactory: (apiConfigService: ApiConfigService) => new RedisCacheModuleOptions({
         host: apiConfigService.getRedisUrl(),
-        port: apiConfigService.getRedisPort(),
       }, {
         poolLimit: apiConfigService.getPoolLimit(),
         processTtl: apiConfigService.getProcessTtl(),

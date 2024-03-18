@@ -1,30 +1,25 @@
 import { Injectable } from "@nestjs/common";
-import { ApiConfigService } from "./api.config.service";
 import { ErdnestConfigService } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
 export class SdkNestjsConfigServiceImpl implements ErdnestConfigService {
-  constructor(
-    private readonly apiConfigService: ApiConfigService,
-  ) { }
-
   getSecurityAdmins(): string[] {
-    return this.apiConfigService.getSecurityAdmins();
+    return [];
   }
 
   getJwtSecret(): string {
-    return ''; // We use only NativeAuth in this template, so we don't need a JWT secret
+    return '';
   }
 
   getApiUrl(): string {
-    return this.apiConfigService.getApiUrl();
+    return '';
   }
 
   getNativeAuthMaxExpirySeconds(): number {
-    return this.apiConfigService.getNativeAuthMaxExpirySeconds();
+    return 0;
   }
 
   getNativeAuthAcceptedOrigins(): string[] {
-    return this.apiConfigService.getNativeAuthAcceptedOrigins();
+    return [];
   }
 }

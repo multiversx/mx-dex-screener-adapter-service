@@ -1,20 +1,18 @@
 import { Module } from '@nestjs/common';
-import { EndpointsServicesModule } from './endpoints/endpoints.services.module';
-import { EndpointsControllersModule } from './endpoints/endpoints.controllers.module';
-import { DynamicModuleUtils } from '@mvx-monorepo/common';
+import { ApiMetricsModule, DynamicModuleUtils } from '@mvx-monorepo/common';
 import { LoggingModule } from '@multiversx/sdk-nestjs-common';
+import { EndpointsModule } from './endpoints';
 
 @Module({
   imports: [
     LoggingModule,
-    EndpointsServicesModule,
-    EndpointsControllersModule,
+    ApiMetricsModule,
+    EndpointsModule,
   ],
   providers: [
     DynamicModuleUtils.getNestJsApiConfigService(),
   ],
   exports: [
-    EndpointsServicesModule,
   ],
 })
 export class PublicAppModule { }
