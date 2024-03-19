@@ -24,4 +24,11 @@ export class CacheInfo {
       ttl: Constants.oneMinute() * 10,
     };
   }
+
+  static ContractDeployInfo(address: string): CacheInfo {
+    return {
+      key: `contract-deploy-info:${address}`,
+      ttl: Constants.oneDay(),
+    };
+  }
 }

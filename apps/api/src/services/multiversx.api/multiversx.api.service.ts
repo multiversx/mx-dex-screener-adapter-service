@@ -38,4 +38,24 @@ export class MultiversXApiService {
       throw error;
     }
   }
+
+  public async getContractDeployInfo(address: string): Promise<{ deployTxHash?: string, deployedAt?: number }> {
+    return await this.cacheService.getOrSet(
+      CacheInfo.ContractDeployInfo(address).key,
+      () => this.getContractDeployInfoRaw(address),
+      CacheInfo.ContractDeployInfo(address).ttl,
+    );
+  }
+
+  private async getContractDeployInfoRaw(address: string): Promise<{ deployTxHash?: string, deployedAt?: number }> {
+    try {
+      const { data } = await this.apiService.get(`${this.apiConfigService.getApiUrl()}/accounts/${address}/?fields=deployTxHash,deployedAt`);
+      return data;
+    } catch (error: any) {
+      this.logger.error(`Failed to get contract deploy info with address: ${address}`);
+      this.logger.error(error);
+
+      return {};
+    }
+  }
 }

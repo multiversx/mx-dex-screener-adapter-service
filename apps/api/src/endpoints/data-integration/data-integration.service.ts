@@ -46,6 +46,12 @@ export class DataIntegrationService {
     }
 
     const pair = Pair.fromXExchangePair(xExchangePair);
+
+    const { deployTxHash, deployedAt } = await this.multiversXApiService.getContractDeployInfo(address);
+    // pair.createdAtBlockNumber = // TODO: will get the round number from the indexer
+    pair.createdAtBlockTimestamp = deployedAt;
+    pair.createdAtTxnId = deployTxHash;
+
     return {
       pair,
     };
