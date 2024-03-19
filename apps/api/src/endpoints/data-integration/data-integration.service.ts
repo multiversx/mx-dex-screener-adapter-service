@@ -54,26 +54,40 @@ export class DataIntegrationService {
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
     const shardId = this.apiConfigService.getXExchangeShardId();
 
-    const [fromBlock, toBlock] = await Promise.all([
-      this.indexerService.getBlock(shardId, fromBlockNonce),
-      this.indexerService.getBlock(shardId, toBlockNonce),
-    ]);
-
-    if (!fromBlock || !toBlock) {
-      // TODO handle error
-      throw new NotFoundException(`Block not found`);
+    const blocks = await this.indexerService.getBlocks(shardId, fromBlockNonce, toBlockNonce);
+    if (blocks.length === 0) {
+      return {
+        events: [],
+      };
     }
+
+    const after = blocks[0].timestamp;
+    const before = blocks[blocks.length - 1].timestamp;
 
     const pairsMetadata = await this.xExchangeService.getPairsMetadata();
     const pairAddresses = pairsMetadata.map((p) => p.address);
 
-    const elasticSwapEvents = await this.indexerService.getSwapEvents(toBlock.timestamp, fromBlock.timestamp, pairAddresses);
+    const elasticSwapEvents = await this.indexerService.getSwapEvents(before, after, pairAddresses);
 
-    const swapEvents = elasticSwapEvents.map((event) => SwapEvent.fromElasticSwapEvent(event));
+    const events: ({ block: Block } & SwapEvent)[] = [];
+    for (const event of elasticSwapEvents) {
+      const elasticBlock = blocks.find((block) => block.timestamp === event.timestamp);
+      if (!elasticBlock) {
+        // TODO: handle error
+        continue;
+      }
+
+      const block = Block.fromElasticBlock(elasticBlock, { onlyRequiredFields: true });
+      const swapEvent = SwapEvent.fromElasticSwapEvent(event);
+
+      events.push({
+        block,
+        ...swapEvent,
+      });
+    }
 
     return {
-      // @ts-ignore
-      events: swapEvents,
+      events,
     };
   }
 }

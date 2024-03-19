@@ -1,4 +1,4 @@
-import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType } from "@multiversx/sdk-nestjs-elastic";
+import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
 import { ElasticBlock, ElasticEvent } from "./entities";
 import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
@@ -20,16 +20,16 @@ export class IndexerService {
     return block;
   }
 
-  public async getBlock(shardId: number, nonce: number): Promise<ElasticBlock | undefined> {
+  public async getBlocks(shardId: number, fromNonce: number, toNonce: number): Promise<ElasticBlock[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 1 })
       .withFields(['nonce', 'shardId', 'timestamp'])
       .withMustCondition(new MatchQuery('shardId', shardId))
-      .withMustCondition(new MatchQuery('nonce', nonce))
-      .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
+      .withMustCondition(new RangeQuery('nonce', [new RangeLowerThanOrEqual(toNonce), new RangeGreaterThanOrEqual(fromNonce)]))
+      .withSort([{ name: 'timestamp', order: ElasticSortOrder.ascending }]);
 
     const blocks = await this.elasticService.getList('blocks', 'hash', query);
-    return blocks.length > 0 ? blocks[0] : undefined;
+    return blocks;
   }
 
   public async getSwapEvents(before: number, after: number, pairAddresses: string[]): Promise<ElasticEvent[]> {
@@ -58,6 +58,9 @@ export class IndexerService {
         const isSwapTopic = event.topics.length > 0 && event.topics[0] === nameTopic;
 
         if (isSwapAddress && isSwapIdentifier && isSwapTopic) {
+          // append timestamp
+          event.timestamp = log.timestamp;
+
           swapEvents.push(event);
         }
       }
