@@ -67,6 +67,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFail('xExchange.shardId');
   }
 
+  getXExchangeRouterAddress(): string {
+    return this.getOrFail('xExchange.routerAddress');
+  }
+
   private getOrFail<T>(key: string): T {
     const value = this.get<T>(key);
 

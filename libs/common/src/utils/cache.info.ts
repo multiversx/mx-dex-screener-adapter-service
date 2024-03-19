@@ -10,4 +10,11 @@ export class CacheInfo {
       ttl: Constants.oneHour(),
     };
   }
+
+  static PairsMetadata(): CacheInfo {
+    return {
+      key: "pairs-metadata",
+      ttl: Constants.oneMinute(),
+    };
+  }
 }

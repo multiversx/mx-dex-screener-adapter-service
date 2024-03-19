@@ -36,4 +36,28 @@ export class Pair {
 
   @ApiProperty()
   metadata?: Record<string, string>;
+
+  static fromXExchangePair(pair: any): Pair {
+    // @ts-ignore
+    return {
+      id: pair.address,
+      dexKey: 'xexchange', // TODO: update dex key
+      // TODO:
+      // dexKey!: string;
+      // asset0Id!: string;
+      // asset1Id!: string;
+      // createdAtBlockNumber?: number;
+      // createdAtBlockTimestamp?: number;
+      // createdAtTxnId?: string;
+      // feeBps?: number;
+      // pool?: {
+      //   id: string;
+      //   name: string;
+      //   assetIds: string[];
+      //   pairIds: string[];
+      //   metadata?: Record<string, string>;
+      // };
+      // metadata?: Record<string, string>;
+    };
+  }
 }
