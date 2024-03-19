@@ -43,6 +43,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFallback('keepAlive.enable', true);
   }
 
+  getApiUrl(): string {
+    return this.getOrFail('urls.api');
+  }
+
   getElasticUrl(): string {
     return this.getOrFail('urls.elastic');
   }

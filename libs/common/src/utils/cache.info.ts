@@ -4,15 +4,10 @@ export class CacheInfo {
   key: string = "";
   ttl: number = Constants.oneSecond() * 6;
 
-  static LastProcessedNonce(shardId: number): CacheInfo {
+  static Token(identifier: string): CacheInfo {
     return {
-      key: `lastProcessedNonce:${shardId}`,
-      ttl: Constants.oneMonth(),
+      key: `token:${identifier}`,
+      ttl: Constants.oneHour(),
     };
   }
-
-  static Examples: CacheInfo = {
-    key: "examples",
-    ttl: Constants.oneHour(),
-  };
 }

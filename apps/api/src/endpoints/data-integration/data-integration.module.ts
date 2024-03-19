@@ -1,11 +1,12 @@
 import { Module } from "@nestjs/common";
 import { DataIntegrationService } from "./data-integration.service";
 import { DataIntegrationController } from "./data-integration.controller";
-import { IndexerModule } from "../../services";
+import { IndexerModule, MultiversXApiModule } from "../../services";
 
 @Module({
   imports: [
     IndexerModule,
+    MultiversXApiModule,
   ],
   providers: [
     DataIntegrationService,
