@@ -6,6 +6,7 @@ apps:
   privateApi:
     port: ${PRIVATE_API_PORT}
 urls:
+  api: ${API_URL}
   redis: ${REDIS_URL}
   elastic: ${ELASTIC_URL}
 keepAlive:

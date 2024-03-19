@@ -1,8 +1,8 @@
-import { Injectable, NotImplementedException } from "@nestjs/common";
+import { Injectable, NotFoundException, NotImplementedException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
-import { IndexerService } from "../../services";
+import { IndexerService, MultiversXApiService } from "../../services";
 import { ApiConfigService } from "@mvx-monorepo/common";
-import { Block } from "../../entitites";
+import { Asset, Block } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
@@ -11,6 +11,7 @@ export class DataIntegrationService {
   constructor(
     private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
+    private readonly multiversXApiService: MultiversXApiService,
   ) { }
 
   public async getLatestBlock(): Promise<LatestBlockResponse> {
@@ -19,15 +20,21 @@ export class DataIntegrationService {
     const block = await this.indexerService.getLatestBlock(shardId);
 
     const latestBlock = Block.fromElasticBlock(block);
-
     return {
       block: latestBlock,
     };
   }
 
-  // eslint-disable-next-line require-await
-  public async getAsset(_id: string): Promise<AssetResponse> {
-    throw new NotImplementedException();
+  public async getAsset(identifier: string): Promise<AssetResponse> {
+    const token = await this.multiversXApiService.getToken(identifier);
+    if (!token) {
+      throw new NotFoundException(`Asset with identifier ${identifier} not found`);
+    }
+
+    const asset = Asset.fromToken(token);
+    return {
+      asset,
+    };
   }
 
   // eslint-disable-next-line require-await
