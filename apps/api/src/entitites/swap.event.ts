@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ElasticEvent } from "../services";
+import { XExchangeSwapEvent } from "../services";
 
 export class SwapEvent {
   @ApiProperty()
@@ -44,21 +44,20 @@ export class SwapEvent {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromElasticSwapEvent(event: ElasticEvent): SwapEvent {
-    // TODO
-    // @ts-ignore
+  static fromXExchangeSwapEvent(event: XExchangeSwapEvent): SwapEvent {
+    // TODO: handle inversed pairs
     return {
       eventType: "swap",
-      // txnId!: string;
-      // txnIndex!: number;
-      // eventIndex!: number;
-      // maker!: string;
+      txnId: event.txHash,
+      txnIndex: 0, // TODO
+      eventIndex: 0,
+      maker: event.caller,
       pairId: event.address,
-      // asset0In?: number | string;
-      // asset1In?: number | string;
-      // asset0Out?: number | string;
-      // asset1Out?: number | string;
-      // priceNative!: number | string;
+      // asset0In: event.tokenInI,
+      // asset1In: event.tokenOutId,
+      // asset0Out: event.tokenInAmount,
+      // asset1Out?: number | string
+      priceNative: '0',
       // reserves?: {
       //   asset0: number | string;
       //   asset1: number | string;

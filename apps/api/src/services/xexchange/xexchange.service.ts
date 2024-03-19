@@ -6,9 +6,10 @@ import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { ContractQueryRequest } from "@multiversx/sdk-network-providers/out/contractQueryRequest";
 import pairAbi from "./abis/pair.abi.json";
 import routerAbi from "./abis/router.abi.json";
-import { PairMetadata, XExchangePair } from "./entities";
+import { PairMetadata, XExchangePair, XExchangeSwapEvent } from "./entities";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import BigNumber from "bignumber.js";
+import { IndexerService } from "../indexer";
 
 @Injectable()
 export class XExchangeService {
@@ -21,6 +22,7 @@ export class XExchangeService {
     private readonly apiConfigService: ApiConfigService,
     private readonly apiService: ApiService,
     private readonly cacheService: CacheService,
+    private readonly indexerService: IndexerService,
   ) {
     this.resultsParser = new ResultsParser();
 
@@ -115,5 +117,22 @@ export class XExchangeService {
 
     const response = this.resultsParser.parseQueryResponse(queryResponse, interaction.getEndpoint());
     return response;
+  }
+
+  public async getSwapEvents(before: number, after: number): Promise<XExchangeSwapEvent[]> {
+    const pairsMetadata = await this.getPairsMetadata();
+    const pairAddresses = pairsMetadata.map((p) => p.address);
+
+    const logs = await this.indexerService.getSwapLogs(before, after, pairAddresses);
+
+    const swapEvents: XExchangeSwapEvent[] = [];
+    for (const log of logs) {
+      for (const event of log.events) {
+        const swapEvent = new XExchangeSwapEvent(event, log);
+        swapEvents.push(swapEvent);
+      }
+    }
+
+    return swapEvents;
   }
 }

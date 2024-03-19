@@ -6,8 +6,6 @@ import { Asset, Block, Pair, SwapEvent } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
-  // private readonly logger = new OriginLogger(DataIntegrationService.name);
-
   constructor(
     private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
@@ -64,21 +62,18 @@ export class DataIntegrationService {
     const after = blocks[0].timestamp;
     const before = blocks[blocks.length - 1].timestamp;
 
-    const pairsMetadata = await this.xExchangeService.getPairsMetadata();
-    const pairAddresses = pairsMetadata.map((p) => p.address);
-
-    const elasticSwapEvents = await this.indexerService.getSwapEvents(before, after, pairAddresses);
+    const xExchangeSwapEvents = await this.xExchangeService.getSwapEvents(before, after);
 
     const events: ({ block: Block } & SwapEvent)[] = [];
-    for (const event of elasticSwapEvents) {
-      const elasticBlock = blocks.find((block) => block.timestamp === event.timestamp);
+    for (const event of xExchangeSwapEvents) {
+      const elasticBlock = blocks.find((block) => block.nonce === event.block);
       if (!elasticBlock) {
         // TODO: handle error
         continue;
       }
 
       const block = Block.fromElasticBlock(elasticBlock, { onlyRequiredFields: true });
-      const swapEvent = SwapEvent.fromElasticSwapEvent(event);
+      const swapEvent = SwapEvent.fromXExchangeSwapEvent(event);
 
       events.push({
         block,
@@ -86,8 +81,6 @@ export class DataIntegrationService {
       });
     }
 
-    return {
-      events,
-    };
+    return { events };
   }
 }

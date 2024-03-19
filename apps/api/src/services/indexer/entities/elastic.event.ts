@@ -3,5 +3,4 @@ export interface ElasticEvent {
   address: string;
   data: string;
   topics: string[];
-  timestamp: number;
 }

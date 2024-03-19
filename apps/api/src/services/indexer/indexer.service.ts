@@ -1,6 +1,6 @@
 import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
-import { ElasticBlock, ElasticEvent } from "./entities";
+import { ElasticBlock, ElasticLog } from "./entities";
 import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
@@ -22,7 +22,7 @@ export class IndexerService {
 
   public async getBlocks(shardId: number, fromNonce: number, toNonce: number): Promise<ElasticBlock[]> {
     const query = ElasticQuery.create()
-      .withPagination({ from: 0, size: 1 })
+      .withPagination({ from: 0, size: 10_000 })
       .withFields(['nonce', 'shardId', 'timestamp'])
       .withMustCondition(new MatchQuery('shardId', shardId))
       .withMustCondition(new RangeQuery('nonce', [new RangeLowerThanOrEqual(toNonce), new RangeGreaterThanOrEqual(fromNonce)]))
@@ -32,7 +32,7 @@ export class IndexerService {
     return blocks;
   }
 
-  public async getSwapEvents(before: number, after: number, pairAddresses: string[]): Promise<ElasticEvent[]> {
+  public async getSwapLogs(before: number, after: number, pairAddresses: string[]): Promise<ElasticLog[]> {
     const nameTopic = BinaryUtils.base64Encode('swap');
 
     const query = ElasticQuery.create()
@@ -48,24 +48,21 @@ export class IndexerService {
       .withDateRangeFilter('timestamp', before, after)
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
 
-    const logs = await this.elasticService.getList('logs', 'txHash', query);
+    const logsRaw = await this.elasticService.getList('logs', 'txHash', query);
 
-    const swapEvents: ElasticEvent[] = [];
-    for (const log of logs) {
-      for (const event of log.events) {
+    const logs = logsRaw.map((log) => {
+      const events = log.events.filter((event: any) => {
         const isSwapAddress = pairAddresses.includes(event.address);
         const isSwapIdentifier = event.identifier === 'swapTokensFixedInput' || event.identifier === 'swapTokensFixedOutput';
         const isSwapTopic = event.topics.length > 0 && event.topics[0] === nameTopic;
 
-        if (isSwapAddress && isSwapIdentifier && isSwapTopic) {
-          // append timestamp
-          event.timestamp = log.timestamp;
+        const isSwapEvent = isSwapAddress && isSwapIdentifier && isSwapTopic;
+        return isSwapEvent;
+      });
 
-          swapEvents.push(event);
-        }
-      }
-    }
+      return { ...log, events };
+    });
 
-    return swapEvents;
+    return logs;
   }
 }
