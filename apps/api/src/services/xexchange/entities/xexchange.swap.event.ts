@@ -1,8 +1,9 @@
 import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, TokenIdentifierType, U64Type } from "@multiversx/sdk-core/out";
 import { ElasticEvent, ElasticLog } from "../../indexer";
 import { PairEventTopics } from '@multiversx/sdk-exchange';
+import { XExchangeEvent } from "./xexchange.event";
 
-export class XExchangeSwapEvent {
+export class XExchangeSwapEvent extends XExchangeEvent {
   address: string;
   identifier: string;
   topics: string[];
@@ -22,6 +23,8 @@ export class XExchangeSwapEvent {
   txHash: string;
 
   constructor(event: ElasticEvent, log: ElasticLog) {
+    super('swap');
+
     this.address = event.address;
     this.identifier = event.identifier;
     this.topics = event.topics;

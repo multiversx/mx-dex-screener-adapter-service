@@ -6,10 +6,12 @@ import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { ContractQueryRequest } from "@multiversx/sdk-network-providers/out/contractQueryRequest";
 import pairAbi from "./abis/pair.abi.json";
 import routerAbi from "./abis/router.abi.json";
-import { PairMetadata, XExchangePair, XExchangeSwapEvent } from "./entities";
+import { PairMetadata, XExchangeAddLiquidityEvent, XExchangePair, XExchangeRemoveLiquidityEvent, XExchangeSwapEvent } from "./entities";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import BigNumber from "bignumber.js";
 import { IndexerService } from "../indexer";
+import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
+import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
 
 @Injectable()
 export class XExchangeService {
@@ -119,20 +121,40 @@ export class XExchangeService {
     return response;
   }
 
-  public async getSwapEvents(before: number, after: number): Promise<XExchangeSwapEvent[]> {
+  public async getEvents(before: number, after: number): Promise<(XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[]> {
     const pairsMetadata = await this.getPairsMetadata();
     const pairAddresses = pairsMetadata.map((p) => p.address);
 
-    const logs = await this.indexerService.getSwapLogs(before, after, pairAddresses);
+    const swapTopic = BinaryUtils.base64Encode(PAIR_EVENTS.SWAP);
+    const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
+    const removeLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.REMOVE_LIQUIDITY);
+    const eventNames = [swapTopic, addLiquidityTopic, removeLiquidityTopic];
 
-    const swapEvents: XExchangeSwapEvent[] = [];
+    const logs = await this.indexerService.getLogs(before, after, pairAddresses, eventNames);
+
+    const events: (XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[] = [];
     for (const log of logs) {
       for (const event of log.events) {
-        const swapEvent = new XExchangeSwapEvent(event, log);
-        swapEvents.push(swapEvent);
+        switch (event.topics[0]) {
+          case swapTopic:
+            const swapEvent = new XExchangeSwapEvent(event, log);
+            events.push(swapEvent);
+            break;
+          case addLiquidityTopic:
+            const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log);
+            events.push(addLiquidityEvent);
+            break;
+          case removeLiquidityTopic:
+            const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log);
+            events.push(removeLiquidityEvent);
+            break;
+          default:
+            // TODO: handle error
+            continue;
+        }
       }
     }
 
-    return swapEvents;
+    return events;
   }
 }

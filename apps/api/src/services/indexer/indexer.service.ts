@@ -1,7 +1,6 @@
 import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
 import { ElasticBlock, ElasticLog } from "./entities";
-import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
 export class IndexerService {
@@ -32,18 +31,12 @@ export class IndexerService {
     return blocks;
   }
 
-  public async getSwapLogs(before: number, after: number, pairAddresses: string[]): Promise<ElasticLog[]> {
-    const nameTopic = BinaryUtils.base64Encode('swap');
-
+  public async getLogs(before: number, after: number, addresses: string[], eventNames: string[]): Promise<ElasticLog[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 10000 })
       .withMustCondition([
-        QueryType.Should(pairAddresses.map(address => QueryType.Nested("events", [new MatchQuery("events.address", address)]))),
-        QueryType.Should([
-          QueryType.Nested('events', [new MatchQuery('events.identifier', 'swapTokensFixedInput')]),
-          QueryType.Nested('events', [new MatchQuery('events.identifier', 'swapTokensFixedOutput')]),
-        ]),
-        QueryType.Nested('events', [new MatchQuery('events.topics', nameTopic)]),
+        QueryType.Should(addresses.map(address => QueryType.Nested("events", [new MatchQuery("events.address", address)]))),
+        QueryType.Should(eventNames.map(eventName => QueryType.Nested('events', [new MatchQuery('events.topics', eventName)]))),
       ])
       .withDateRangeFilter('timestamp', before, after)
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
@@ -52,12 +45,10 @@ export class IndexerService {
 
     const logs = logsRaw.map((log) => {
       const events = log.events.filter((event: any) => {
-        const isSwapAddress = pairAddresses.includes(event.address);
-        const isSwapIdentifier = event.identifier === 'swapTokensFixedInput' || event.identifier === 'swapTokensFixedOutput';
-        const isSwapTopic = event.topics.length > 0 && event.topics[0] === nameTopic;
+        const isSearchedAddress = addresses.includes(event.address);
+        const isSearchedEvent = event.topics.length > 0 && eventNames.includes(event.topics[0]);
 
-        const isSwapEvent = isSwapAddress && isSwapIdentifier && isSwapTopic;
-        return isSwapEvent;
+        return isSearchedAddress && isSearchedEvent;
       });
 
       return { ...log, events };

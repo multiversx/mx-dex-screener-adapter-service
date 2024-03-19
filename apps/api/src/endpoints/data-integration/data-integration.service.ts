@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
-import { IndexerService, MultiversXApiService, XExchangeService } from "../../services";
+import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
 import { ApiConfigService } from "@mvx-monorepo/common";
-import { Asset, Block, Pair, SwapEvent } from "../../entitites";
+import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
@@ -62,22 +62,36 @@ export class DataIntegrationService {
     const after = blocks[0].timestamp;
     const before = blocks[blocks.length - 1].timestamp;
 
-    const xExchangeSwapEvents = await this.xExchangeService.getSwapEvents(before, after);
+    const xExchangeEvents = await this.xExchangeService.getEvents(before, after);
 
-    const events: ({ block: Block } & SwapEvent)[] = [];
-    for (const event of xExchangeSwapEvents) {
-      const elasticBlock = blocks.find((block) => block.nonce === event.block);
+    const events: ({ block: Block } & (SwapEvent | JoinExitEvent))[] = [];
+    for (const xExchangeEvent of xExchangeEvents) {
+      let event: SwapEvent | JoinExitEvent;
+      switch (xExchangeEvent.type) {
+        case "swap":
+          event = SwapEvent.fromXExchangeSwapEvent(xExchangeEvent as XExchangeSwapEvent);
+          break;
+        case "addLiquidity":
+          event = JoinExitEvent.fromXExchangeAddLiquidityEvent(xExchangeEvent as XExchangeAddLiquidityEvent);
+          break;
+        case "removeLiquidity":
+          event = JoinExitEvent.fromXExchangeRemoveLiquidityEvent(xExchangeEvent as XExchangeRemoveLiquidityEvent);
+          break;
+        default:
+          // TODO: handle error
+          continue;
+      }
+
+      const elasticBlock = blocks.find((block) => block.nonce === xExchangeEvent.block);
       if (!elasticBlock) {
         // TODO: handle error
         continue;
       }
 
       const block = Block.fromElasticBlock(elasticBlock, { onlyRequiredFields: true });
-      const swapEvent = SwapEvent.fromXExchangeSwapEvent(event);
-
       events.push({
         block,
-        ...swapEvent,
+        ...event,
       });
     }
 
