@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException, NotImplementedException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
 import { IndexerService, MultiversXApiService, XExchangeService } from "../../services";
 import { ApiConfigService } from "@mvx-monorepo/common";
-import { Asset, Block, Pair } from "../../entitites";
+import { Asset, Block, Pair, SwapEvent } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
@@ -51,8 +51,29 @@ export class DataIntegrationService {
     };
   }
 
-  // eslint-disable-next-line require-await
-  public async getEvents(_fromBlock: number, _toBlock: number): Promise<EventsResponse> {
-    throw new NotImplementedException();
+  public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
+    const shardId = this.apiConfigService.getXExchangeShardId();
+
+    const [fromBlock, toBlock] = await Promise.all([
+      this.indexerService.getBlock(shardId, fromBlockNonce),
+      this.indexerService.getBlock(shardId, toBlockNonce),
+    ]);
+
+    if (!fromBlock || !toBlock) {
+      // TODO handle error
+      throw new NotFoundException(`Block not found`);
+    }
+
+    const pairsMetadata = await this.xExchangeService.getPairsMetadata();
+    const pairAddresses = pairsMetadata.map((p) => p.address);
+
+    const elasticSwapEvents = await this.indexerService.getSwapEvents(toBlock.timestamp, fromBlock.timestamp, pairAddresses);
+
+    const swapEvents = elasticSwapEvents.map((event) => SwapEvent.fromElasticSwapEvent(event));
+
+    return {
+      // @ts-ignore
+      events: swapEvents,
+    };
   }
 }

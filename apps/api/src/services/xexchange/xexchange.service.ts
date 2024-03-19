@@ -32,7 +32,7 @@ export class XExchangeService {
   }
 
   public async getPairs(): Promise<XExchangePair[]> {
-    const pairsMetadata = await this.pairsMetadata();
+    const pairsMetadata = await this.getPairsMetadata();
 
     const pairs: XExchangePair[] = await Promise.all(pairsMetadata.map(async (metadata) => {
       const feePercent = await this.getPairFeePercent(metadata.address);
@@ -49,15 +49,15 @@ export class XExchangeService {
     return pairs;
   }
 
-  private async pairsMetadata(): Promise<PairMetadata[]> {
+  public async getPairsMetadata(): Promise<PairMetadata[]> {
     return await this.cacheService.getOrSet(
       CacheInfo.PairsMetadata().key,
-      () => this.pairsMetadataRaw(),
+      () => this.getPairsMetadataRaw(),
       CacheInfo.PairsMetadata().ttl,
     );
   }
 
-  private async pairsMetadataRaw(): Promise<PairMetadata[]> {
+  private async getPairsMetadataRaw(): Promise<PairMetadata[]> {
     const interaction = this.routerContract.methodsExplicit.getAllPairContractMetadata();
     const responseRaw = await this.queryContract(interaction);
     const response = responseRaw?.firstValue?.valueOf();
