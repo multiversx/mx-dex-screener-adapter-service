@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { ElasticBlock } from "../services";
 
 export class Block {
   @ApiProperty()
@@ -9,4 +10,15 @@ export class Block {
 
   @ApiProperty()
   metadata?: Record<string, string>;
+
+  static fromElasticBlock(block: ElasticBlock): Block {
+    return {
+      blockNumber: block.nonce,
+      blockTimestamp: block.timestamp,
+      metadata: {
+        hash: block.hash,
+        shardId: block.shardId.toString(),
+      },
+    };
+  }
 }
