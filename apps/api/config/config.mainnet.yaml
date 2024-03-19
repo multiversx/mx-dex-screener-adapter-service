@@ -15,3 +15,5 @@ keepAlive:
 caching:
   poolLimit: 100
   processTtl: 60
+xExchange:
+  shardId: 1

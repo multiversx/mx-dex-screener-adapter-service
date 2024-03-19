@@ -59,6 +59,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFallback('caching.processTtl', 60);
   }
 
+  getXExchangeShardId(): number {
+    return this.getOrFail('xExchange.shardId');
+  }
+
   private getOrFail<T>(key: string): T {
     const value = this.get<T>(key);
 
