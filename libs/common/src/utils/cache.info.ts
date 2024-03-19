@@ -17,4 +17,11 @@ export class CacheInfo {
       ttl: Constants.oneMinute(),
     };
   }
+
+  static PairFeePercent(pairAddress: string): CacheInfo {
+    return {
+      key: `pair-fee-percent:${pairAddress}`,
+      ttl: Constants.oneMinute() * 10,
+    };
+  }
 }

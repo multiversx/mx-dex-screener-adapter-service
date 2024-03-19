@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { XExchangePair } from "../services";
 
 export class Pair {
   @ApiProperty()
@@ -37,19 +38,17 @@ export class Pair {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromXExchangePair(pair: any): Pair {
-    // @ts-ignore
+  static fromXExchangePair(pair: XExchangePair): Pair {
     return {
       id: pair.address,
-      dexKey: 'xexchange', // TODO: update dex key
+      dexKey: 'xexchange', // TODO: update dex key      
+      asset0Id: pair.firstTokenId,
+      asset1Id: pair.secondTokenId,
+      feeBps: pair.feePercent * 100,
       // TODO:
-      // dexKey!: string;
-      // asset0Id!: string;
-      // asset1Id!: string;
       // createdAtBlockNumber?: number;
       // createdAtBlockTimestamp?: number;
       // createdAtTxnId?: string;
-      // feeBps?: number;
       // pool?: {
       //   id: string;
       //   name: string;

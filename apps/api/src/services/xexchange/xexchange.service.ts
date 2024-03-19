@@ -4,12 +4,16 @@ import { Injectable } from "@nestjs/common";
 import { ApiService } from "@multiversx/sdk-nestjs-http";
 import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { ContractQueryRequest } from "@multiversx/sdk-network-providers/out/contractQueryRequest";
+import pairAbi from "./abis/pair.abi.json";
 import routerAbi from "./abis/router.abi.json";
-import { PairMetadata } from "./entities";
+import { PairMetadata, XExchangePair } from "./entities";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
+import BigNumber from "bignumber.js";
 
 @Injectable()
 export class XExchangeService {
+  private readonly SWAP_FEE_PERCENT_BASE_POINTS = 100000;
+
   private readonly resultsParser: ResultsParser;
   private readonly routerContract: SmartContract;
 
@@ -27,11 +31,20 @@ export class XExchangeService {
     });
   }
 
-  public async getPairs(): Promise<any[]> {
-    const pairs = await this.pairsMetadata();
+  public async getPairs(): Promise<XExchangePair[]> {
+    const pairsMetadata = await this.pairsMetadata();
 
-    // TODO: add other fields
-    // TODO: swap first and second token if needed
+    const pairs: XExchangePair[] = await Promise.all(pairsMetadata.map(async (metadata) => {
+      const feePercent = await this.getPairFeePercent(metadata.address);
+
+      // TODO: add other fields
+      // TODO: swap first and second token if needed
+
+      return {
+        ...metadata,
+        feePercent,
+      };
+    }));
 
     return pairs;
   }
@@ -63,6 +76,36 @@ export class XExchangeService {
     });
 
     return pairsMetadata;
+  }
+
+  private async getPairFeePercent(pairAddress: string): Promise<number> {
+    return await this.cacheService.getOrSet(
+      CacheInfo.PairFeePercent(pairAddress).key,
+      () => this.getPairFeePercentRaw(pairAddress),
+      CacheInfo.PairFeePercent(pairAddress).ttl,
+    );
+  }
+
+  private async getPairFeePercentRaw(pairAddress: string): Promise<number> {
+    const pairContract = new SmartContract({
+      address: new Address(pairAddress),
+      abi: AbiRegistry.create(pairAbi),
+    });
+
+    const interaction = pairContract.methodsExplicit.getTotalFeePercent();
+    const responseRaw = await this.queryContract(interaction);
+    const response = responseRaw?.firstValue?.valueOf()?.toNumber();
+
+    if (response === undefined) {
+      // TOOD: handle error
+      throw new Error("No response");
+    }
+
+    const feePercent = new BigNumber(response)
+      .dividedBy(this.SWAP_FEE_PERCENT_BASE_POINTS)
+      .multipliedBy(100)
+      .toNumber();
+    return feePercent;
   }
 
   private async queryContract(interaction: Interaction): Promise<TypedOutcomeBundle> {
