@@ -18,17 +18,17 @@ import '@multiversx/sdk-nestjs-common/lib/utils/extensions/date.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/number.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/string.extensions';
 import configuration from '../config/configuration';
-import { CacheWarmerAppModule } from './cache-warmer.app.module';
+import { OfflineJobsAppModule } from './offline-jobs.app.module';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrapper');
 
   LoggerInitializer.initialize(logger);
 
-  const cacheWarmerApp = await NestFactory.create(CacheWarmerAppModule);
-  const apiConfigService = cacheWarmerApp.get<ApiConfigService>(ApiConfigService);
+  const offlineJobsApp = await NestFactory.create(OfflineJobsAppModule);
+  const apiConfigService = offlineJobsApp.get<ApiConfigService>(ApiConfigService);
 
-  await cacheWarmerApp.listen(apiConfigService.getCacheWarmerFeaturePort());
+  await offlineJobsApp.listen(apiConfigService.getCacheWarmerFeaturePort());
 
   const privateApp = await NestFactory.create(PrivateAppModule);
   await privateApp.listen(apiConfigService.getPrivateApiFeaturePort());

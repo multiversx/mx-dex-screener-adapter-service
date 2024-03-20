@@ -61,17 +61,17 @@
         ]
       }
     },
-    "cache-warmer": {
+    "offline-jobs": {
       "type": "application",
-      "root": "apps/cache-warmer",
+      "root": "apps/offline-jobs",
       "entryFile": "main",
-      "sourceRoot": "apps/cache-warmer/src",
+      "sourceRoot": "apps/offline-jobs/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/cache-warmer/tsconfig.app.json",
+        "tsConfigPath": "apps/offline-jobs/tsconfig.app.json",
         "assets": [
           {
             "include": "../config/config.yaml",
-            "outDir": "./dist/apps/cache-warmer/config"
+            "outDir": "./dist/apps/offline-jobs/config"
           }
         ]
       }

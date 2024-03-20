@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { XExchangeCacheWarmerService } from "./xexchange.cache-warmer.service";
+import { CacheWarmerService } from "./cache-warmer.service";
 import { DynamicModuleUtils, MultiversXApiModule, XExchangeModule } from "@mvx-monorepo/common";
 import configuration from "../../../config/configuration";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -13,10 +13,10 @@ import { ScheduleModule } from "@nestjs/schedule";
   ],
   providers: [
     DynamicModuleUtils.getPubSubService(),
-    XExchangeCacheWarmerService,
+    CacheWarmerService,
   ],
   exports: [
-    XExchangeCacheWarmerService,
+    CacheWarmerService,
   ],
 })
-export class XExchangeCacheWarmerModule { }
+export class CacheWarmerModule { }

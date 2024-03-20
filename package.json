@@ -7,13 +7,13 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build api && npm run build cache-warmer && nest build common",
-    "postbuild": "npm run copy-api-config && npm run copy-cache-warmer-config",
+    "build": "nest build api && npm run build offline-jobs && nest build common",
+    "postbuild": "npm run copy-api-config && npm run copy-offline-jobs-config",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:api:mainnet": "cp ./.env.mainnet ./.env & npm run copy-api-config & nest build api & TZ=UTC nest start --watch --debug",
     "start:api:custom": "cp ./.env.custom ./.env & npm run copy-api-config & nest build api & TZ=UTC nest start --watch --debug",
-    "start:cache-warmer:mainnet": "cp ./.env.mainnet ./.env & npm run copy-cache-warmer-config & nest build cache-warmer & TZ=UTC nest start cache-warmer --watch --debug",
-    "start:cache-warmer:custom": "cp ./.env.custom ./.env & npm run copy-cache-warmer-config & nest build cache-warmer & TZ=UTC nest start cache-warmer --watch --debug",
+    "start:offline-jobs:mainnet": "cp ./.env.mainnet ./.env & npm run copy-offline-jobs-config & nest build offline-jobs & TZ=UTC nest start offline-jobs --watch --debug",
+    "start:offline-jobs:custom": "cp ./.env.custom ./.env & npm run copy-offline-jobs-config & nest build offline-jobs & TZ=UTC nest start offline-jobs --watch --debug",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -22,7 +22,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
     "copy-api-config": "cp -r ./apps/api/config ./dist/apps/api",
-    "copy-cache-warmer-config": "cp -r ./apps/cache-warmer/config ./dist/apps/cache-warmer"
+    "copy-offline-jobs-config": "cp -r ./apps/offline-jobs/config ./dist/apps/offline-jobs"
   },
   "dependencies": {
     "@multiversx/sdk-core": "^12.15.0",

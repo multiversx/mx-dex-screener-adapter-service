@@ -17,4 +17,4 @@ import configuration from '../config/configuration';
   exports: [
   ],
 })
-export class CacheWarmerAppModule { }
+export class OfflineJobsAppModule { }

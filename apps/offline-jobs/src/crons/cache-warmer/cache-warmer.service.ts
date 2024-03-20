@@ -6,8 +6,8 @@ import { ClientProxy } from "@nestjs/microservices";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
-export class XExchangeCacheWarmerService {
-  private readonly logger = new OriginLogger(XExchangeCacheWarmerService.name);
+export class CacheWarmerService {
+  private readonly logger = new OriginLogger(CacheWarmerService.name);
 
   constructor(
     private readonly xExchangeService: XExchangeService,
@@ -16,7 +16,7 @@ export class XExchangeCacheWarmerService {
     @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
   ) { }
 
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   @Lock({ name: 'warmPairsMetadata', verbose: true })
   async warmPairsMetadata() {
     const pairsMetadata = await this.xExchangeService.getPairsMetadataRaw();
