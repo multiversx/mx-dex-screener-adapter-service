@@ -35,10 +35,32 @@ export class CacheWarmerService {
     for (const tokenId of tokens) {
       try {
         const token = await this.multiversXApiService.getTokenRaw(tokenId);
+
         await this.cacheService.set(CacheInfo.Token(tokenId).key, token, CacheInfo.Token(tokenId).ttl);
         cacheKeys.push(CacheInfo.Token(tokenId).key);
       } catch (error: any) {
         this.logger.error(`Failed to get token with identifier: ${tokenId}`);
+        this.logger.error(error);
+      }
+    }
+
+    this.clientProxy.emit('deleteCacheKeys', cacheKeys);
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Lock({ name: 'warmPairFees', verbose: true })
+  async warmPairFees() {
+    const pairsMetadata = await this.xExchangeService.getPairsMetadata();
+
+    const cacheKeys: string[] = [];
+    for (const metadata of pairsMetadata) {
+      try {
+        const feePercent = await this.xExchangeService.getPairFeePercentRaw(metadata.address);
+
+        await this.cacheService.set(CacheInfo.PairFeePercent(metadata.address).key, feePercent, CacheInfo.PairFeePercent(metadata.address).ttl);
+        cacheKeys.push(CacheInfo.PairFeePercent(metadata.address).key);
+      } catch (error: any) {
+        this.logger.error(`Failed to get fee percent for pair with address: ${metadata.address}`);
         this.logger.error(error);
       }
     }

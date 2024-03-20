@@ -107,7 +107,7 @@ export class XExchangeService {
     );
   }
 
-  private async getPairFeePercentRaw(pairAddress: string): Promise<number> {
+  public async getPairFeePercentRaw(pairAddress: string): Promise<number> {
     const pairContract = new SmartContract({
       address: new Address(pairAddress),
       abi: AbiRegistry.create(pairAbi),
