@@ -1,24 +1,23 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
 import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
-import { ApiConfigService } from "@mvx-monorepo/common";
 import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
   constructor(
-    private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
     private readonly multiversXApiService: MultiversXApiService,
     private readonly xExchangeService: XExchangeService,
   ) { }
 
   public async getLatestBlock(): Promise<LatestBlockResponse> {
-    const shardId = this.apiConfigService.getXExchangeShardId();
+    // we are using rounds instead of blocks because the MultiversX blockchain is multi-sharded,
+    // each shard has its own block number, but the round number is the same across all shards
 
-    const block = await this.indexerService.getLatestBlock(shardId);
+    const round = await this.indexerService.getLatestRound();
 
-    const latestBlock = Block.fromElasticBlock(block);
+    const latestBlock = Block.fromElasticRound(round);
     return {
       block: latestBlock,
     };
@@ -56,17 +55,15 @@ export class DataIntegrationService {
   }
 
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
-    const shardId = this.apiConfigService.getXExchangeShardId();
-
-    const blocks = await this.indexerService.getBlocks(shardId, fromBlockNonce, toBlockNonce);
-    if (blocks.length === 0) {
+    const rounds = await this.indexerService.getRounds(fromBlockNonce, toBlockNonce);
+    if (rounds.length === 0) {
       return {
         events: [],
       };
     }
 
-    const after = blocks[0].timestamp;
-    const before = blocks[blocks.length - 1].timestamp;
+    const after = rounds[0].timestamp;
+    const before = rounds[rounds.length - 1].timestamp;
 
     const xExchangeEvents = await this.xExchangeService.getEvents(before, after);
 
@@ -88,13 +85,13 @@ export class DataIntegrationService {
           continue;
       }
 
-      const elasticBlock = blocks.find((block) => block.nonce === xExchangeEvent.block);
-      if (!elasticBlock) {
+      const round = rounds.find((round) => round.timestamp === xExchangeEvent.timestamp);
+      if (!round) {
         // TODO: handle error
         continue;
       }
 
-      const block = Block.fromElasticBlock(elasticBlock, { onlyRequiredFields: true });
+      const block = Block.fromElasticRound(round, { onlyRequiredFields: true });
       events.push({
         block,
         ...event,

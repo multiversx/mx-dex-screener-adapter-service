@@ -63,10 +63,6 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFallback('caching.processTtl', 60);
   }
 
-  getXExchangeShardId(): number {
-    return this.getOrFail('xExchange.shardId');
-  }
-
   getXExchangeRouterAddress(): string {
     return this.getOrFail('xExchange.routerAddress');
   }

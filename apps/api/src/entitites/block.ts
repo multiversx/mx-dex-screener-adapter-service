@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ElasticBlock } from "../services";
+import { ElasticRound } from "../services";
 
 export class Block {
   @ApiProperty()
@@ -11,20 +11,19 @@ export class Block {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromElasticBlock(block: ElasticBlock, options?: { onlyRequiredFields?: boolean }): Block {
+  static fromElasticRound(round: ElasticRound, options?: { onlyRequiredFields?: boolean }): Block {
     if (options?.onlyRequiredFields) {
       return {
-        blockNumber: block.nonce,
-        blockTimestamp: block.timestamp,
+        blockNumber: round.round,
+        blockTimestamp: round.timestamp,
       };
     }
 
     return {
-      blockNumber: block.nonce,
-      blockTimestamp: block.timestamp,
+      blockNumber: round.round,
+      blockTimestamp: round.timestamp,
       metadata: {
-        hash: block.hash,
-        shardId: block.shardId.toString(),
+        epoch: round.epoch.toString(),
       },
     };
   }

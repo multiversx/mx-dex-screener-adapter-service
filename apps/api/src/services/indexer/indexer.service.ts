@@ -1,6 +1,6 @@
 import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
-import { ElasticBlock, ElasticLog } from "./entities";
+import { ElasticLog, ElasticRound } from "./entities";
 
 @Injectable()
 export class IndexerService {
@@ -8,27 +8,32 @@ export class IndexerService {
     private readonly elasticService: ElasticService,
   ) { }
 
-  public async getLatestBlock(shardId: number): Promise<ElasticBlock> {
+  public async getLatestRound(): Promise<ElasticRound> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 1 })
-      .withFields(['nonce', 'shardId', 'timestamp'])
-      .withMustCondition(new MatchQuery('shardId', shardId))
+      .withFields(['round', 'epoch', 'timestamp'])
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
 
-    const [block] = await this.elasticService.getList('blocks', 'hash', query);
-    return block;
+    const [round] = await this.elasticService.getList('rounds', 'id', query);
+    return round;
   }
 
-  public async getBlocks(shardId: number, fromNonce: number, toNonce: number): Promise<ElasticBlock[]> {
+  public async getRounds(fromRound: number, toRound: number): Promise<ElasticRound[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 10_000 })
-      .withFields(['nonce', 'shardId', 'timestamp'])
-      .withMustCondition(new MatchQuery('shardId', shardId))
-      .withMustCondition(new RangeQuery('nonce', [new RangeLowerThanOrEqual(toNonce), new RangeGreaterThanOrEqual(fromNonce)]))
-      .withSort([{ name: 'timestamp', order: ElasticSortOrder.ascending }]);
+      .withFields(['round', 'epoch', 'shardId', 'timestamp'])
+      .withMustCondition(new MatchQuery('shardId', 4294967295))
+      .withMustCondition(new RangeQuery('round', [
+        new RangeLowerThanOrEqual(toRound),
+        new RangeGreaterThanOrEqual(fromRound),
+      ]))
+      .withSort([{
+        name: 'timestamp',
+        order: ElasticSortOrder.ascending,
+      }]);
 
-    const blocks = await this.elasticService.getList('blocks', 'hash', query);
-    return blocks;
+    const rounds = await this.elasticService.getList('rounds', 'id', query);
+    return rounds;
   }
 
   public async getLogs(before: number, after: number, addresses: string[], eventNames: string[]): Promise<ElasticLog[]> {
