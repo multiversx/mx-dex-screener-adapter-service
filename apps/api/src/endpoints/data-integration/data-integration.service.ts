@@ -42,13 +42,10 @@ export class DataIntegrationService {
       throw new NotFoundException(`Pair with address ${address} not found`);
     }
 
-    const pair = Pair.fromXExchangePair(xExchangePair);
-
     const { deployTxHash, deployedAt } = await this.multiversXApiService.getContractDeployInfo(address);
-    // pair.createdAtBlockNumber = // TODO: will get the round number from the indexer
-    pair.createdAtBlockTimestamp = deployedAt;
-    pair.createdAtTxnId = deployTxHash;
+    const round = deployedAt ? await this.indexerService.getRound(deployedAt) : undefined;
 
+    const pair = Pair.fromXExchangePair(xExchangePair, { deployTxHash, deployedAt, deployRound: round?.round });
     return {
       pair,
     };

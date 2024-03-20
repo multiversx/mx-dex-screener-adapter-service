@@ -1,9 +1,12 @@
 import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
 import { ElasticLog, ElasticRound } from "./entities";
+import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
 export class IndexerService {
+  private readonly logger = new OriginLogger(IndexerService.name);
+
   constructor(
     private readonly elasticService: ElasticService,
   ) { }
@@ -16,6 +19,23 @@ export class IndexerService {
 
     const [round] = await this.elasticService.getList('rounds', 'id', query);
     return round;
+  }
+
+  public async getRound(timestamp: number): Promise<ElasticRound | undefined> {
+    try {
+      const query = ElasticQuery.create()
+        .withPagination({ from: 0, size: 1 })
+        .withFields(['round', 'epoch', 'timestamp'])
+        .withMustCondition(new MatchQuery('timestamp', timestamp));
+
+      const rounds = await this.elasticService.getList('rounds', 'id', query);
+      return rounds.length > 0 ? rounds[0] : undefined;
+    } catch (error) {
+      this.logger.error(`Failed to get round with timestamp: ${timestamp}`);
+      this.logger.error(error);
+
+      return undefined;
+    }
   }
 
   public async getRounds(fromRound: number, toRound: number): Promise<ElasticRound[]> {
