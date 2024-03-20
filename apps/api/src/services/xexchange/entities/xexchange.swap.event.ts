@@ -38,12 +38,12 @@ export class XExchangeSwapEvent extends XExchangeEvent {
     const decodedEvent = this.decodeEvent();
     this.caller = decodedEvent.caller.bech32();
 
-    this.tokenInId = decodedEvent.tokenOutID;
-    this.tokenInAmount = decodedEvent.tokenOutAmount.toFixed();
-    this.tokenOutId = decodedEvent.tokenInID;
-    this.tokenOutAmount = decodedEvent.tokenInAmount.toFixed();
-    this.tokenInReserves = decodedEvent.tokenOutReserves.toFixed();
-    this.tokenOutReserves = decodedEvent.tokenInReserves.toFixed();
+    this.tokenInId = decodedEvent.tokenInID;
+    this.tokenInAmount = decodedEvent.tokenInAmount.toFixed();
+    this.tokenOutId = decodedEvent.tokenOutID;
+    this.tokenOutAmount = decodedEvent.tokenOutAmount.toFixed();
+    this.tokenInReserves = decodedEvent.tokenInReserves.toFixed();
+    this.tokenOutReserves = decodedEvent.tokenOutReserves.toFixed();
 
     this.feeAmount = decodedEvent.feeAmount.toFixed();
     this.block = decodedEvent.block.toNumber();
