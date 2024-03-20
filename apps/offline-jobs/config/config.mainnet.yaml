@@ -5,8 +5,8 @@ apps:
     prefix: ${PUBLIC_API_PREFIX}
   privateApi:
     port: ${PRIVATE_API_PORT}
-  cacheWarmer:
-    port: ${CACHE_WARMER_PORT}
+  offlineJobs:
+    port: ${OFFLINE_JOBS_PORT}
 urls:
   api: ${API_URL}
   redis: ${REDIS_URL}

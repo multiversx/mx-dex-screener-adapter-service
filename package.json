@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build api && npm run build offline-jobs && nest build common",
+    "build": "nest build api && nest build offline-jobs && nest build common",
     "postbuild": "npm run copy-api-config && npm run copy-offline-jobs-config",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:api:mainnet": "cp ./.env.mainnet ./.env & npm run copy-api-config & nest build api & TZ=UTC nest start --watch --debug",

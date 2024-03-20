@@ -28,7 +28,7 @@ async function bootstrap() {
   const offlineJobsApp = await NestFactory.create(OfflineJobsAppModule);
   const apiConfigService = offlineJobsApp.get<ApiConfigService>(ApiConfigService);
 
-  await offlineJobsApp.listen(apiConfigService.getCacheWarmerFeaturePort());
+  await offlineJobsApp.listen(apiConfigService.getOfflineJobsFeaturePort());
 
   const privateApp = await NestFactory.create(PrivateAppModule);
   await privateApp.listen(apiConfigService.getPrivateApiFeaturePort());
@@ -50,7 +50,7 @@ async function bootstrap() {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   pubSubApp.listen();
 
-  logger.log(`Cache Warmer WORKER active on port ${apiConfigService.getCacheWarmerFeaturePort()}`);
+  logger.log(`Cache Warmer WORKER active on port ${apiConfigService.getOfflineJobsFeaturePort()}`);
   logger.log(`Private API active on port ${apiConfigService.getPrivateApiFeaturePort()}`);
 
 }
