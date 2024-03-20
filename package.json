@@ -7,13 +7,13 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build api && nest build common",
-    "postbuild": "npm run copy-config",
+    "build": "nest build api && npm run build cache-warmer && nest build common",
+    "postbuild": "npm run copy-api-config && npm run copy-cache-warmer-config",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start:api:devnet": "cp ./.env.devnet ./.env & npm run copy-config & nest build api & TZ=UTC nest start --watch --debug",
-    "start:api:testnet": "cp ./.env.testnet ./.env & npm run copy-config & nest build api & TZ=UTC nest start --watch --debug",
-    "start:api:mainnet": "cp ./.env.mainnet ./.env & npm run copy-config & nest build api & TZ=UTC nest start --watch --debug",
-    "start:api:custom": "cp ./.env.custom ./.env & npm run copy-config & nest build api & TZ=UTC nest start --watch --debug",
+    "start:api:mainnet": "cp ./.env.mainnet ./.env & npm run copy-api-config & nest build api & TZ=UTC nest start --watch --debug",
+    "start:api:custom": "cp ./.env.custom ./.env & npm run copy-api-config & nest build api & TZ=UTC nest start --watch --debug",
+    "start:cache-warmer:mainnet": "cp ./.env.mainnet ./.env & npm run copy-cache-warmer-config & nest build cache-warmer & TZ=UTC nest start cache-warmer --watch --debug",
+    "start:cache-warmer:custom": "cp ./.env.custom ./.env & npm run copy-cache-warmer-config & nest build cache-warmer & TZ=UTC nest start cache-warmer --watch --debug",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -21,7 +21,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
-    "copy-config": "cp -r ./apps/api/config ./dist/apps/api"
+    "copy-api-config": "cp -r ./apps/api/config ./dist/apps/api",
+    "copy-cache-warmer-config": "cp -r ./apps/cache-warmer/config ./dist/apps/cache-warmer"
   },
   "dependencies": {
     "@multiversx/sdk-core": "^12.15.0",

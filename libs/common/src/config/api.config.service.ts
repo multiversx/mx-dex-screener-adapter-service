@@ -23,6 +23,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFail('apps.privateApi.port');
   }
 
+  getCacheWarmerFeaturePort(): number {
+    return this.getOrFail('apps.cacheWarmer.port');
+  }
+
   getAxiosTimeout(): number {
     return this.getOrFallback('keepAlive.downstreamTimeout', 61000);
   }
