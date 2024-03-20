@@ -67,6 +67,14 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFail('xExchange.routerAddress');
   }
 
+  getWrappedEGLDIdentifier(): string {
+    return this.getOrFail('tokens.WEGLD');
+  }
+
+  getWrappedUSDCIdentifier(): string {
+    return this.getOrFail('tokens.WUSDC');
+  }
+
   private getOrFail<T>(key: string): T {
     const value = this.get<T>(key);
 

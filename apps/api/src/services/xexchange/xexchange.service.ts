@@ -72,10 +72,16 @@ export class XExchangeService {
     }
 
     const pairsMetadata = response.map((v: any) => {
+      const firstTokenId = v.first_token_id.toString();
+      const secondTokenId = v.second_token_id.toString();
+
+      const isInverted = this.isPairInverted(firstTokenId, secondTokenId);
+
       return {
         address: v.address.toString(),
-        firstTokenId: v.first_token_id.toString(),
-        secondTokenId: v.second_token_id.toString(),
+        firstTokenId: isInverted ? secondTokenId : firstTokenId,
+        secondTokenId: isInverted ? firstTokenId : secondTokenId,
+        isInverted,
       };
     });
 
@@ -156,5 +162,12 @@ export class XExchangeService {
     }
 
     return events;
+  }
+
+  private isPairInverted(firstTokenId: string, secondTokenId: string): boolean {
+    const wegldIdentifier = this.apiConfigService.getWrappedEGLDIdentifier();
+    const wusdcIdentifier = this.apiConfigService.getWrappedUSDCIdentifier();
+
+    return firstTokenId === wegldIdentifier && secondTokenId !== wusdcIdentifier;
   }
 }
