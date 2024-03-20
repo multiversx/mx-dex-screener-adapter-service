@@ -7,7 +7,7 @@ export class CacheInfo {
   static Token(identifier: string): CacheInfo {
     return {
       key: `token:${identifier}`,
-      ttl: Constants.oneHour(),
+      ttl: Constants.oneDay(),
     };
   }
 

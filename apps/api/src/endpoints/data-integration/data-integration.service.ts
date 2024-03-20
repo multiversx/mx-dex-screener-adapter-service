@@ -2,10 +2,12 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
 import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
 import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
+import { ApiConfigService } from "@mvx-monorepo/common";
 
 @Injectable()
 export class DataIntegrationService {
   constructor(
+    private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
     private readonly multiversXApiService: MultiversXApiService,
     private readonly xExchangeService: XExchangeService,
@@ -29,7 +31,11 @@ export class DataIntegrationService {
       throw new NotFoundException(`Asset with identifier ${identifier} not found`);
     }
 
-    const asset = Asset.fromToken(token);
+    const asset = Asset.fromToken(token, {
+      wegldIdentifier: this.apiConfigService.getWrappedEGLDIdentifier(),
+      usdcIdentifier: this.apiConfigService.getWrappedUSDCIdentifier(),
+    });
+
     return {
       asset,
     };
@@ -72,10 +78,10 @@ export class DataIntegrationService {
           event = SwapEvent.fromXExchangeSwapEvent(xExchangeEvent as XExchangeSwapEvent);
           break;
         case "addLiquidity":
-          event = JoinExitEvent.fromXExchangeAddLiquidityEvent(xExchangeEvent as XExchangeAddLiquidityEvent);
+          event = JoinExitEvent.fromXExchangeEvent(xExchangeEvent as XExchangeAddLiquidityEvent);
           break;
         case "removeLiquidity":
-          event = JoinExitEvent.fromXExchangeRemoveLiquidityEvent(xExchangeEvent as XExchangeRemoveLiquidityEvent);
+          event = JoinExitEvent.fromXExchangeEvent(xExchangeEvent as XExchangeRemoveLiquidityEvent);
           break;
         default:
           // TODO: handle error

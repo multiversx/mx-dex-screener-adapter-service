@@ -2,6 +2,7 @@ import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, Tok
 import { ElasticEvent, ElasticLog } from "../../indexer";
 import { XExchangeEvent } from "./xexchange.event";
 import { PairEventTopics } from '@multiversx/sdk-exchange';
+import { XExchangePair } from "./pair";
 export class XExchangeAddLiquidityEvent extends XExchangeEvent {
   address: string;
   identifier: string;
@@ -22,8 +23,10 @@ export class XExchangeAddLiquidityEvent extends XExchangeEvent {
   epoch: number;
   timestamp: number;
   txHash: string;
+  eventOrder: number;
+  pair: XExchangePair;
 
-  constructor(event: ElasticEvent, log: ElasticLog) {
+  constructor(event: ElasticEvent, log: ElasticLog, pair: XExchangePair) {
     super('addLiquidity');
 
     this.address = event.address;
@@ -34,20 +37,34 @@ export class XExchangeAddLiquidityEvent extends XExchangeEvent {
 
     const decodedEvent = this.decodeEvent();
     this.caller = decodedEvent.caller.bech32();
-    this.firstTokenId = decodedEvent.firstTokenID;
-    this.firstTokenAmount = decodedEvent.firstTokenAmount.toFixed();
-    this.secondTokenId = decodedEvent.secondTokenID;
-    this.secondTokenAmount = decodedEvent.secondTokenAmount.toFixed();
+
+    if (pair.isInverted) {
+      this.firstTokenId = decodedEvent.secondTokenID;
+      this.firstTokenAmount = decodedEvent.secondTokenAmount.toFixed();
+      this.secondTokenId = decodedEvent.firstTokenID;
+      this.secondTokenAmount = decodedEvent.firstTokenAmount.toFixed();
+      this.firstTokenReserves = decodedEvent.secondTokenReserves.toFixed();
+      this.secondTokenReserves = decodedEvent.firstTokenReserves.toFixed();
+    } else {
+      this.firstTokenId = decodedEvent.firstTokenID;
+      this.firstTokenAmount = decodedEvent.firstTokenAmount.toFixed();
+      this.secondTokenId = decodedEvent.secondTokenID;
+      this.secondTokenAmount = decodedEvent.secondTokenAmount.toFixed();
+      this.firstTokenReserves = decodedEvent.firstTokenReserves.toFixed();
+      this.secondTokenReserves = decodedEvent.secondTokenReserves.toFixed();
+    }
+
     this.lpTokenId = decodedEvent.lpTokenID;
     this.lpTokenAmount = decodedEvent.lpTokenAmount.toFixed();
     this.liquidityPoolSupply = decodedEvent.liquidityPoolSupply.toFixed();
-    this.firstTokenReserves = decodedEvent.firstTokenReserves.toFixed();
-    this.secondTokenReserves = decodedEvent.secondTokenReserves.toFixed();
+
     this.block = decodedEvent.block.toNumber();
     this.epoch = decodedEvent.epoch.toNumber();
     this.timestamp = decodedEvent.timestamp.toNumber();
 
-    this.txHash = log.originalTxHash; // TODO: discuss
+    this.txHash = log.originalTxHash ?? log.txHash;
+    this.eventOrder = event.order;
+    this.pair = pair;
   }
 
   private decodeEvent() {

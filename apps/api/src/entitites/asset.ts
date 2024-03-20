@@ -26,7 +26,7 @@ export class Asset {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromToken(token: Token): Asset {
+  static fromToken(token: Token, extra: { wegldIdentifier: string, usdcIdentifier: string }): Asset {
     let coinGeckoId = undefined;
     if (token.assets?.social?.coingecko) {
       coinGeckoId = token.assets?.social?.coingecko.replace('https://www.coingecko.com/en/coins/', '').split('/')[0];
@@ -37,15 +37,26 @@ export class Asset {
       coinMarketCapId = token.assets?.social?.coinmarketcap.replace('https://coinmarketcap.com/currencies/', '').split('/')[0];
     }
 
+    const name = token.name;
+    let symbol = token.ticker;
+
+    if (token.identifier === extra.wegldIdentifier) {
+      // name = 'MultiversX eGold';
+      symbol = 'EGLD';
+    }
+    if (token.identifier === extra.usdcIdentifier) {
+      // name = 'WrappedUSDC';
+      symbol = 'USDC';
+    }
+
     return {
       id: token.identifier,
-      name: token.name,
-      symbol: token.ticker,
-      totalSupply: token.supply, // TODO: format
-      circulatingSupply: token.circulatingSupply, // TODO: format
+      name,
+      symbol,
+      totalSupply: token.supply,
+      circulatingSupply: token.circulatingSupply,
       coinGeckoId,
       coinMarketCapId,
-      // TODO: add metadata
     };
   }
 }
