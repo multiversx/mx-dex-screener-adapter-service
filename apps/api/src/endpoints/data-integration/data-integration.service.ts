@@ -3,9 +3,12 @@ import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from
 import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
 import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
 import { ApiConfigService } from "@mvx-monorepo/common";
+import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
 export class DataIntegrationService {
+  private readonly logger = new OriginLogger(DataIntegrationService.name);
+
   constructor(
     private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
@@ -84,13 +87,13 @@ export class DataIntegrationService {
           event = JoinExitEvent.fromXExchangeEvent(xExchangeEvent as XExchangeRemoveLiquidityEvent);
           break;
         default:
-          // TODO: handle error
+          this.logger.error(`Unknown event type: ${xExchangeEvent.type} for event: ${JSON.stringify(xExchangeEvent)}`);
           continue;
       }
 
       const round = rounds.find((round) => round.timestamp === xExchangeEvent.timestamp);
       if (!round) {
-        // TODO: handle error
+        this.logger.error(`Round not found for event: ${JSON.stringify(xExchangeEvent)}`);
         continue;
       }
 

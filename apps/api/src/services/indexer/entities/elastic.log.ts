@@ -6,4 +6,5 @@ export interface ElasticLog {
   address: string;
   timestamp: number;
   events: ElasticEvent[];
+  order: number;
 }

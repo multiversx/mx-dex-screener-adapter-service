@@ -66,9 +66,15 @@ export class IndexerService {
       .withDateRangeFilter('timestamp', before, after)
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
 
-    const logsRaw = await this.elasticService.getList('logs', 'txHash', query);
+    const logsRaw: ElasticLog[] = [];
+    // eslint-disable-next-line require-await
+    await this.elasticService.getScrollableList('logs', 'txHash', query, async (logs: ElasticLog[]) => {
+      logsRaw.push(...logs);
+    }, {
+      scrollTimeout: '10m',
+    });
 
-    const logs = logsRaw.map((log) => {
+    const logs = logsRaw.map((log, index) => {
       const events = log.events.filter((event: any) => {
         const isSearchedAddress = addresses.includes(event.address);
         const isSearchedEvent = event.topics.length > 0 && eventNames.includes(event.topics[0]);
@@ -76,7 +82,11 @@ export class IndexerService {
         return isSearchedAddress && isSearchedEvent;
       });
 
-      return { ...log, events };
+      return {
+        ...log,
+        order: index,
+        events,
+      };
     });
 
     return logs;

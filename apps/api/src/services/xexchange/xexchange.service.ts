@@ -10,14 +10,14 @@ import { PairMetadata, XExchangeAddLiquidityEvent, XExchangePair, XExchangeRemov
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import BigNumber from "bignumber.js";
 import { IndexerService } from "../indexer";
-import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
+import { BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
 import { MultiversXApiService } from "../multiversx.api";
 
 @Injectable()
 export class XExchangeService {
   private readonly SWAP_FEE_PERCENT_BASE_POINTS = 100000;
-
+  private readonly logger = new OriginLogger(XExchangeService.name);
   private readonly resultsParser: ResultsParser;
   private readonly routerContract: SmartContract;
 
@@ -49,7 +49,7 @@ export class XExchangeService {
       ]);
 
       if (!firstToken || !secondToken) {
-        // TODO: handle error
+        this.logger.error(`Token not found for pair with address ${metadata.address}`);
         continue;
       }
 
@@ -78,8 +78,8 @@ export class XExchangeService {
     const response = responseRaw?.firstValue?.valueOf();
 
     if (!response) {
-      // TODO: handle error
-      throw new Error("No response");
+      this.logger.error(`Empty vm-query result`);
+      throw new Error("Empty vm-query result");
     }
 
     const pairsMetadata = response.map((v: any) => {
@@ -154,7 +154,7 @@ export class XExchangeService {
       for (const event of log.events) {
         const pair = pairs.find((p) => p.address === event.address);
         if (!pair) {
-          // TODO: handle error
+          this.logger.error(`Pair not found for address ${event.address}`);
           continue;
         }
 
@@ -172,7 +172,7 @@ export class XExchangeService {
             events.push(removeLiquidityEvent);
             break;
           default:
-            // TODO: handle error
+            this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
             continue;
         }
       }
