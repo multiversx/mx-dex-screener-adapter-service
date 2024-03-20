@@ -51,10 +51,12 @@ export class DataIntegrationService {
       throw new NotFoundException(`Pair with address ${address} not found`);
     }
 
+    const pairFeePercent = await this.xExchangeService.getPairFeePercent(address);
+
     const { deployTxHash, deployedAt } = await this.multiversXApiService.getContractDeployInfo(address);
     const round = deployedAt ? await this.indexerService.getRound(deployedAt) : undefined;
 
-    const pair = Pair.fromXExchangePair(xExchangePair, { deployTxHash, deployedAt, deployRound: round?.round });
+    const pair = Pair.fromXExchangePair(xExchangePair, pairFeePercent, { deployTxHash, deployedAt, deployRound: round?.round });
     return {
       pair,
     };

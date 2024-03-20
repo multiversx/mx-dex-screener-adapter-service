@@ -38,13 +38,13 @@ export class Pair {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromXExchangePair(pair: XExchangePair, deployInfo?: { deployRound?: number, deployTxHash?: string, deployedAt?: number }): Pair {
+  static fromXExchangePair(pair: XExchangePair, feePercent: number, deployInfo?: { deployRound?: number, deployTxHash?: string, deployedAt?: number }): Pair {
     return {
       id: pair.address,
       dexKey: 'xexchange',
       asset0Id: pair.firstTokenId,
       asset1Id: pair.secondTokenId,
-      feeBps: pair.feePercent * 100,
+      feeBps: feePercent * 100,
       createdAtBlockNumber: deployInfo?.deployRound,
       createdAtBlockTimestamp: deployInfo?.deployedAt,
       createdAtTxnId: deployInfo?.deployTxHash,

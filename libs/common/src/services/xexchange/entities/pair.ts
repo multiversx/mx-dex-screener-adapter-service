@@ -4,6 +4,5 @@ export interface XExchangePair {
   firstTokenDecimals: number;
   secondTokenId: string;
   secondTokenDecimals: number;
-  feePercent: number;
   isInverted: boolean;
 }
