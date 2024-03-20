@@ -12,8 +12,7 @@ export class ApiConfigService extends BaseConfigService {
   }
 
   getPublicApiPrefix(): string | undefined {
-    return 'dex-screener-adapter';
-    // return this.get('apps.publicApi.prefix');
+    return this.get('apps.publicApi.prefix');
   }
 
   getPublicApiFeaturePort(): number {
