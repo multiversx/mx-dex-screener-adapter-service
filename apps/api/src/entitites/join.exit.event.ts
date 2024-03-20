@@ -1,5 +1,5 @@
+import { XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent } from "@mvx-monorepo/common";
 import { ApiProperty } from "@nestjs/swagger";
-import { XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent } from "../services";
 import BigNumber from "bignumber.js";
 
 export class JoinExitEvent {

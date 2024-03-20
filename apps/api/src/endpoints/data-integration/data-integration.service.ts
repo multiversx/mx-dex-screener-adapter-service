@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
-import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
+import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "@mvx-monorepo/common";
 import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
 import { ApiConfigService } from "@mvx-monorepo/common";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";

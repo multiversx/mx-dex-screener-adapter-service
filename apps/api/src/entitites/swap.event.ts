@@ -1,5 +1,5 @@
+import { XExchangeSwapEvent } from "@mvx-monorepo/common";
 import { ApiProperty } from "@nestjs/swagger";
-import { XExchangeSwapEvent } from "../services";
 import BigNumber from "bignumber.js";
 
 export class SwapEvent {

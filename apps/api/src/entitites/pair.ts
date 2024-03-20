@@ -1,5 +1,5 @@
+import { XExchangePair } from "@mvx-monorepo/common";
 import { ApiProperty } from "@nestjs/swagger";
-import { XExchangePair } from "../services";
 
 export class Pair {
   @ApiProperty()
