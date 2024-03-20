@@ -72,7 +72,7 @@ export class XExchangeService {
     );
   }
 
-  private async getPairsMetadataRaw(): Promise<PairMetadata[]> {
+  public async getPairsMetadataRaw(): Promise<PairMetadata[]> {
     const interaction = this.routerContract.methodsExplicit.getAllPairContractMetadata();
     const responseRaw = await this.queryContract(interaction);
     const response = responseRaw?.firstValue?.valueOf();
