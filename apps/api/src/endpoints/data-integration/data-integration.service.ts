@@ -1,13 +1,11 @@
-import { Injectable, NotFoundException, NotImplementedException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
-import { IndexerService, MultiversXApiService, XExchangeService } from "../../services";
+import { IndexerService, MultiversXApiService, XExchangeAddLiquidityEvent, XExchangeRemoveLiquidityEvent, XExchangeService, XExchangeSwapEvent } from "../../services";
 import { ApiConfigService } from "@mvx-monorepo/common";
-import { Asset, Block, Pair } from "../../entitites";
+import { Asset, Block, JoinExitEvent, Pair, SwapEvent } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
-  // private readonly logger = new OriginLogger(DataIntegrationService.name);
-
   constructor(
     private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
@@ -57,8 +55,52 @@ export class DataIntegrationService {
     };
   }
 
-  // eslint-disable-next-line require-await
-  public async getEvents(_fromBlock: number, _toBlock: number): Promise<EventsResponse> {
-    throw new NotImplementedException();
+  public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
+    const shardId = this.apiConfigService.getXExchangeShardId();
+
+    const blocks = await this.indexerService.getBlocks(shardId, fromBlockNonce, toBlockNonce);
+    if (blocks.length === 0) {
+      return {
+        events: [],
+      };
+    }
+
+    const after = blocks[0].timestamp;
+    const before = blocks[blocks.length - 1].timestamp;
+
+    const xExchangeEvents = await this.xExchangeService.getEvents(before, after);
+
+    const events: ({ block: Block } & (SwapEvent | JoinExitEvent))[] = [];
+    for (const xExchangeEvent of xExchangeEvents) {
+      let event: SwapEvent | JoinExitEvent;
+      switch (xExchangeEvent.type) {
+        case "swap":
+          event = SwapEvent.fromXExchangeSwapEvent(xExchangeEvent as XExchangeSwapEvent);
+          break;
+        case "addLiquidity":
+          event = JoinExitEvent.fromXExchangeAddLiquidityEvent(xExchangeEvent as XExchangeAddLiquidityEvent);
+          break;
+        case "removeLiquidity":
+          event = JoinExitEvent.fromXExchangeRemoveLiquidityEvent(xExchangeEvent as XExchangeRemoveLiquidityEvent);
+          break;
+        default:
+          // TODO: handle error
+          continue;
+      }
+
+      const elasticBlock = blocks.find((block) => block.nonce === xExchangeEvent.block);
+      if (!elasticBlock) {
+        // TODO: handle error
+        continue;
+      }
+
+      const block = Block.fromElasticBlock(elasticBlock, { onlyRequiredFields: true });
+      events.push({
+        block,
+        ...event,
+      });
+    }
+
+    return { events };
   }
 }

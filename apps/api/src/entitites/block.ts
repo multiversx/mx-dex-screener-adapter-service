@@ -11,7 +11,14 @@ export class Block {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromElasticBlock(block: ElasticBlock): Block {
+  static fromElasticBlock(block: ElasticBlock, options?: { onlyRequiredFields?: boolean }): Block {
+    if (options?.onlyRequiredFields) {
+      return {
+        blockNumber: block.nonce,
+        blockTimestamp: block.timestamp,
+      };
+    }
+
     return {
       blockNumber: block.nonce,
       blockTimestamp: block.timestamp,
