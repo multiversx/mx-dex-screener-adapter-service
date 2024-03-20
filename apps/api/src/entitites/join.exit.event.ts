@@ -42,7 +42,7 @@ export class JoinExitEvent {
     return {
       eventType,
       txnId: event.txHash,
-      txnIndex: 0, // TODO
+      txnIndex: event.txOrder,
       eventIndex: event.eventOrder,
       maker: event.caller,
       pairId: event.address,
