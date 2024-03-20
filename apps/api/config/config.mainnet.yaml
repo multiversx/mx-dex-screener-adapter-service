@@ -18,3 +18,6 @@ caching:
   processTtl: 60
 xExchange:
   routerAddress: 'erd1qqqqqqqqqqqqqpgqq66xk9gfr4esuhem3jru86wg5hvp33a62jps2fy57p'
+tokens:
+  WEGLD: 'WEGLD-bd4d79'
+  WUSDC: 'USDC-c76f1f'

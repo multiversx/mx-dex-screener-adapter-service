@@ -2,6 +2,7 @@ import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, Tok
 import { ElasticEvent, ElasticLog } from "../../indexer";
 import { PairEventTopics } from '@multiversx/sdk-exchange';
 import { XExchangeEvent } from "./xexchange.event";
+import { XExchangePair } from "./pair";
 
 export class XExchangeSwapEvent extends XExchangeEvent {
   address: string;
@@ -21,8 +22,10 @@ export class XExchangeSwapEvent extends XExchangeEvent {
   epoch: number;
   timestamp: number;
   txHash: string;
+  eventOrder: number;
+  pair: XExchangePair;
 
-  constructor(event: ElasticEvent, log: ElasticLog) {
+  constructor(event: ElasticEvent, log: ElasticLog, pair: XExchangePair) {
     super('swap');
 
     this.address = event.address;
@@ -33,18 +36,31 @@ export class XExchangeSwapEvent extends XExchangeEvent {
 
     const decodedEvent = this.decodeEvent();
     this.caller = decodedEvent.caller.bech32();
-    this.tokenInId = decodedEvent.tokenInID;
-    this.tokenInAmount = decodedEvent.tokenInAmount.toFixed();
-    this.tokenOutId = decodedEvent.tokenOutID;
-    this.tokenOutAmount = decodedEvent.tokenOutAmount.toFixed();
+
+    if (pair.isInverted) {
+      this.tokenInId = decodedEvent.tokenOutID;
+      this.tokenInAmount = decodedEvent.tokenOutAmount.toFixed();
+      this.tokenOutId = decodedEvent.tokenInID;
+      this.tokenOutAmount = decodedEvent.tokenInAmount.toFixed();
+      this.tokenInReserves = decodedEvent.tokenOutReserves.toFixed();
+      this.tokenOutReserves = decodedEvent.tokenInReserves.toFixed();
+    } else {
+      this.tokenInId = decodedEvent.tokenInID;
+      this.tokenInAmount = decodedEvent.tokenInAmount.toFixed();
+      this.tokenOutId = decodedEvent.tokenOutID;
+      this.tokenOutAmount = decodedEvent.tokenOutAmount.toFixed();
+      this.tokenInReserves = decodedEvent.tokenInReserves.toFixed();
+      this.tokenOutReserves = decodedEvent.tokenOutReserves.toFixed();
+    }
+
     this.feeAmount = decodedEvent.feeAmount.toFixed();
-    this.tokenInReserves = decodedEvent.tokenInReserves.toFixed();
-    this.tokenOutReserves = decodedEvent.tokenOutReserves.toFixed();
     this.block = decodedEvent.block.toNumber();
     this.epoch = decodedEvent.epoch.toNumber();
     this.timestamp = decodedEvent.timestamp.toNumber();
 
-    this.txHash = log.originalTxHash; // TODO: discuss
+    this.txHash = log.originalTxHash ?? log.txHash;
+    this.eventOrder = event.order;
+    this.pair = pair;
   }
 
   private decodeEvent() {

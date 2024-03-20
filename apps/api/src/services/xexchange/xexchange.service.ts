@@ -12,6 +12,7 @@ import BigNumber from "bignumber.js";
 import { IndexerService } from "../indexer";
 import { BinaryUtils } from "@multiversx/sdk-nestjs-common";
 import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
+import { MultiversXApiService } from "../multiversx.api";
 
 @Injectable()
 export class XExchangeService {
@@ -25,6 +26,7 @@ export class XExchangeService {
     private readonly apiService: ApiService,
     private readonly cacheService: CacheService,
     private readonly indexerService: IndexerService,
+    private readonly multiversXApiService: MultiversXApiService,
   ) {
     this.resultsParser = new ResultsParser();
 
@@ -38,17 +40,26 @@ export class XExchangeService {
   public async getPairs(): Promise<XExchangePair[]> {
     const pairsMetadata = await this.getPairsMetadata();
 
-    const pairs: XExchangePair[] = await Promise.all(pairsMetadata.map(async (metadata) => {
-      const feePercent = await this.getPairFeePercent(metadata.address);
+    const pairs: XExchangePair[] = [];
+    for (const metadata of pairsMetadata) {
+      const [firstToken, secondToken, feePercent] = await Promise.all([
+        this.multiversXApiService.getToken(metadata.firstTokenId),
+        this.multiversXApiService.getToken(metadata.secondTokenId),
+        this.getPairFeePercent(metadata.address),
+      ]);
 
-      // TODO: add other fields
-      // TODO: swap first and second token if needed
+      if (!firstToken || !secondToken) {
+        // TODO: handle error
+        continue;
+      }
 
-      return {
+      pairs.push({
         ...metadata,
         feePercent,
-      };
-    }));
+        firstTokenDecimals: firstToken.decimals,
+        secondTokenDecimals: secondToken.decimals,
+      });
+    }
 
     return pairs;
   }
@@ -72,10 +83,16 @@ export class XExchangeService {
     }
 
     const pairsMetadata = response.map((v: any) => {
+      const firstTokenId = v.first_token_id.toString();
+      const secondTokenId = v.second_token_id.toString();
+
+      const isInverted = this.isPairInverted(firstTokenId, secondTokenId);
+
       return {
         address: v.address.toString(),
-        firstTokenId: v.first_token_id.toString(),
-        secondTokenId: v.second_token_id.toString(),
+        firstTokenId: isInverted ? secondTokenId : firstTokenId,
+        secondTokenId: isInverted ? firstTokenId : secondTokenId,
+        isInverted,
       };
     });
 
@@ -122,8 +139,8 @@ export class XExchangeService {
   }
 
   public async getEvents(before: number, after: number): Promise<(XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[]> {
-    const pairsMetadata = await this.getPairsMetadata();
-    const pairAddresses = pairsMetadata.map((p) => p.address);
+    const pairs = await this.getPairs();
+    const pairAddresses = pairs.map((p) => p.address);
 
     const swapTopic = BinaryUtils.base64Encode(PAIR_EVENTS.SWAP);
     const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
@@ -135,17 +152,23 @@ export class XExchangeService {
     const events: (XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[] = [];
     for (const log of logs) {
       for (const event of log.events) {
+        const pair = pairs.find((p) => p.address === event.address);
+        if (!pair) {
+          // TODO: handle error
+          continue;
+        }
+
         switch (event.topics[0]) {
           case swapTopic:
-            const swapEvent = new XExchangeSwapEvent(event, log);
+            const swapEvent = new XExchangeSwapEvent(event, log, pair);
             events.push(swapEvent);
             break;
           case addLiquidityTopic:
-            const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log);
+            const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log, pair);
             events.push(addLiquidityEvent);
             break;
           case removeLiquidityTopic:
-            const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log);
+            const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log, pair);
             events.push(removeLiquidityEvent);
             break;
           default:
@@ -156,5 +179,12 @@ export class XExchangeService {
     }
 
     return events;
+  }
+
+  private isPairInverted(firstTokenId: string, secondTokenId: string): boolean {
+    const wegldIdentifier = this.apiConfigService.getWrappedEGLDIdentifier();
+    const wusdcIdentifier = this.apiConfigService.getWrappedUSDCIdentifier();
+
+    return firstTokenId === wegldIdentifier && secondTokenId !== wusdcIdentifier;
   }
 }

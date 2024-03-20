@@ -38,25 +38,16 @@ export class Pair {
   @ApiProperty()
   metadata?: Record<string, string>;
 
-  static fromXExchangePair(pair: XExchangePair): Pair {
+  static fromXExchangePair(pair: XExchangePair, deployInfo?: { deployRound?: number, deployTxHash?: string, deployedAt?: number }): Pair {
     return {
       id: pair.address,
-      dexKey: 'xexchange', // TODO: update dex key      
+      dexKey: 'xexchange',
       asset0Id: pair.firstTokenId,
       asset1Id: pair.secondTokenId,
       feeBps: pair.feePercent * 100,
-      // TODO:
-      // createdAtBlockNumber?: number;
-      // createdAtBlockTimestamp?: number;
-      // createdAtTxnId?: string;
-      // pool?: {
-      //   id: string;
-      //   name: string;
-      //   assetIds: string[];
-      //   pairIds: string[];
-      //   metadata?: Record<string, string>;
-      // };
-      // metadata?: Record<string, string>;
+      createdAtBlockNumber: deployInfo?.deployRound,
+      createdAtBlockTimestamp: deployInfo?.deployedAt,
+      createdAtTxnId: deployInfo?.deployTxHash,
     };
   }
 }
