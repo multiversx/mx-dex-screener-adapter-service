@@ -17,5 +17,4 @@ caching:
   poolLimit: 100
   processTtl: 60
 xExchange:
-  shardId: 1
   routerAddress: 'erd1qqqqqqqqqqqqqpgqq66xk9gfr4esuhem3jru86wg5hvp33a62jps2fy57p'
