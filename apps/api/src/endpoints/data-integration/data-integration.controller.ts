@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
 import { ApiResponse } from "@nestjs/swagger";
 import { DataIntegrationService } from "./data-integration.service";
@@ -18,15 +18,21 @@ export class DataIntegrationController {
 
   @Get("/asset")
   async getAsset(
-    @Query("id") id: string, // TODO: check empty or undefined
+    @Query("id") id: string,
   ): Promise<AssetResponse> {
+    if (!id) {
+      throw new BadRequestException("id is required");
+    }
     return await this.dataIntegrationService.getAsset(id);
   }
 
   @Get("/pair")
   async getPair(
-    @Query("id") id: string, // TODO: check empty or undefined
+    @Query("id") id: string,
   ): Promise<PairResponse> {
+    if (!id) {
+      throw new BadRequestException("id is required");
+    }
     return await this.dataIntegrationService.getPair(id);
   }
 
