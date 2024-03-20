@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, NotImplementedException } from "@nestjs/common";
 import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
-import { IndexerService, MultiversXApiService } from "../../services";
+import { IndexerService, MultiversXApiService, XExchangeService } from "../../services";
 import { ApiConfigService } from "@mvx-monorepo/common";
-import { Asset, Block } from "../../entitites";
+import { Asset, Block, Pair } from "../../entitites";
 
 @Injectable()
 export class DataIntegrationService {
@@ -12,6 +12,7 @@ export class DataIntegrationService {
     private readonly apiConfigService: ApiConfigService,
     private readonly indexerService: IndexerService,
     private readonly multiversXApiService: MultiversXApiService,
+    private readonly xExchangeService: XExchangeService,
   ) { }
 
   public async getLatestBlock(): Promise<LatestBlockResponse> {
@@ -37,9 +38,23 @@ export class DataIntegrationService {
     };
   }
 
-  // eslint-disable-next-line require-await
-  public async getPair(_id: string): Promise<PairResponse> {
-    throw new NotImplementedException();
+  public async getPair(address: string): Promise<PairResponse> {
+    const xExchangePairs = await this.xExchangeService.getPairs();
+    const xExchangePair = xExchangePairs.find((p) => p.address === address);
+    if (!xExchangePair) {
+      throw new NotFoundException(`Pair with address ${address} not found`);
+    }
+
+    const pair = Pair.fromXExchangePair(xExchangePair);
+
+    const { deployTxHash, deployedAt } = await this.multiversXApiService.getContractDeployInfo(address);
+    // pair.createdAtBlockNumber = // TODO: will get the round number from the indexer
+    pair.createdAtBlockTimestamp = deployedAt;
+    pair.createdAtTxnId = deployTxHash;
+
+    return {
+      pair,
+    };
   }
 
   // eslint-disable-next-line require-await

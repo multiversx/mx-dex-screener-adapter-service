@@ -1,0 +1,699 @@
+{
+  "buildInfo": {
+    "rustc": {
+      "version": "1.66.0-nightly",
+      "commitHash": "b8c35ca26b191bb9a9ac669a4b3f4d3d52d97fb1",
+      "commitDate": "2022-10-15",
+      "channel": "Nightly",
+      "short": "rustc 1.66.0-nightly (b8c35ca26 2022-10-15)"
+    },
+    "contractCrate": {
+      "name": "router",
+      "version": "0.0.0",
+      "gitVersion": "v1.6.0-1269-g68748a06"
+    },
+    "framework": {
+      "name": "multiversx-sc",
+      "version": "0.39.4"
+    }
+  },
+  "name": "Router",
+  "constructor": {
+    "inputs": [
+      {
+        "name": "pair_template_address_opt",
+        "type": "optional<Address>",
+        "multi_arg": true
+      }
+    ],
+    "outputs": []
+  },
+  "endpoints": [
+    {
+      "name": "pause",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "Address"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "resume",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "Address"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "createPair",
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "initial_liquidity_adder",
+          "type": "Address"
+        },
+        {
+          "name": "opt_fee_percents",
+          "type": "optional<multi<u64,u64>>",
+          "multi_arg": true
+        },
+        {
+          "name": "admins",
+          "type": "variadic<Address>",
+          "multi_arg": true
+        }
+      ],
+      "outputs": [
+        {
+          "type": "Address"
+        }
+      ]
+    },
+    {
+      "name": "upgradePair",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "initial_liquidity_adder",
+          "type": "Address"
+        },
+        {
+          "name": "total_fee_percent_requested",
+          "type": "u64"
+        },
+        {
+          "name": "special_fee_percent_requested",
+          "type": "u64"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "issueLpToken",
+      "mutability": "mutable",
+      "payableInTokens": [
+        "EGLD"
+      ],
+      "inputs": [
+        {
+          "name": "pair_address",
+          "type": "Address"
+        },
+        {
+          "name": "lp_token_display_name",
+          "type": "bytes"
+        },
+        {
+          "name": "lp_token_ticker",
+          "type": "bytes"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setLocalRoles",
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "pair_address",
+          "type": "Address"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setLocalRolesOwner",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "token",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "address",
+          "type": "Address"
+        },
+        {
+          "name": "roles",
+          "type": "variadic<EsdtLocalRole>",
+          "multi_arg": true
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "removePair",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "Address"
+        }
+      ]
+    },
+    {
+      "name": "setFeeOn",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "pair_address",
+          "type": "Address"
+        },
+        {
+          "name": "fee_to_address",
+          "type": "Address"
+        },
+        {
+          "name": "fee_token",
+          "type": "TokenIdentifier"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setFeeOff",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "pair_address",
+          "type": "Address"
+        },
+        {
+          "name": "fee_to_address",
+          "type": "Address"
+        },
+        {
+          "name": "fee_token",
+          "type": "TokenIdentifier"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setPairCreationEnabled",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "getPairCreationEnabled",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "getState",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "getOwner",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "Address"
+        }
+      ]
+    },
+    {
+      "name": "getAllPairsManagedAddresses",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "variadic<Address>",
+          "multi_result": true
+        }
+      ]
+    },
+    {
+      "name": "getAllPairTokens",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "variadic<PairTokens>",
+          "multi_result": true
+        }
+      ]
+    },
+    {
+      "name": "getAllPairContractMetadata",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "variadic<PairContractMetadata>",
+          "multi_result": true
+        }
+      ]
+    },
+    {
+      "name": "getPair",
+      "mutability": "readonly",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "Address"
+        }
+      ]
+    },
+    {
+      "name": "clearPairTemporaryOwnerStorage",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "setTemporaryOwnerPeriod",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "period_blocks",
+          "type": "u64"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setPairTemplateAddress",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "Address"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "getPairTemplateAddress",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "Address"
+        }
+      ]
+    },
+    {
+      "name": "getTemporaryOwnerPeriod",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "multiPairSwap",
+      "mutability": "mutable",
+      "payableInTokens": [
+        "*"
+      ],
+      "inputs": [
+        {
+          "name": "swap_operations",
+          "type": "variadic<multi<Address,bytes,TokenIdentifier,BigUint>>",
+          "multi_arg": true
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "configEnableByUserParameters",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "common_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "locked_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "min_locked_token_value",
+          "type": "BigUint"
+        },
+        {
+          "name": "min_lock_period_epochs",
+          "type": "u64"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "addCommonTokensForUserPairs",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "tokens",
+          "type": "variadic<TokenIdentifier>",
+          "multi_arg": true
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "removeCommonTokensForUserPairs",
+      "onlyOwner": true,
+      "mutability": "mutable",
+      "inputs": [
+        {
+          "name": "tokens",
+          "type": "variadic<TokenIdentifier>",
+          "multi_arg": true
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "setSwapEnabledByUser",
+      "mutability": "mutable",
+      "payableInTokens": [
+        "*"
+      ],
+      "inputs": [
+        {
+          "name": "pair_address",
+          "type": "Address"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "name": "getEnableSwapByUserConfig",
+      "mutability": "readonly",
+      "inputs": [
+        {
+          "name": "token_id",
+          "type": "TokenIdentifier"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "EnableSwapByUserConfig"
+        }
+      ]
+    },
+    {
+      "name": "getCommonTokensForUserPairs",
+      "mutability": "readonly",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "variadic<TokenIdentifier>",
+          "multi_result": true
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "identifier": "create_pair",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier",
+          "indexed": true
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier",
+          "indexed": true
+        },
+        {
+          "name": "caller",
+          "type": "Address",
+          "indexed": true
+        },
+        {
+          "name": "epoch",
+          "type": "u64",
+          "indexed": true
+        },
+        {
+          "name": "swap_event",
+          "type": "CreatePairEvent"
+        }
+      ]
+    },
+    {
+      "identifier": "pairSwapEnabled",
+      "inputs": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier",
+          "indexed": true
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier",
+          "indexed": true
+        },
+        {
+          "name": "caller",
+          "type": "Address",
+          "indexed": true
+        },
+        {
+          "name": "epoch",
+          "type": "u64",
+          "indexed": true
+        },
+        {
+          "name": "swap_enabled_event",
+          "type": "UserPairSwapEnabledEvent"
+        }
+      ]
+    }
+  ],
+  "hasCallback": true,
+  "types": {
+    "CreatePairEvent": {
+      "type": "struct",
+      "fields": [
+        {
+          "name": "caller",
+          "type": "Address"
+        },
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "total_fee_percent",
+          "type": "u64"
+        },
+        {
+          "name": "special_fee_percent",
+          "type": "u64"
+        },
+        {
+          "name": "pair_address",
+          "type": "Address"
+        },
+        {
+          "name": "block",
+          "type": "u64"
+        },
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "timestamp",
+          "type": "u64"
+        }
+      ]
+    },
+    "EnableSwapByUserConfig": {
+      "type": "struct",
+      "fields": [
+        {
+          "name": "locked_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "min_locked_token_value",
+          "type": "BigUint"
+        },
+        {
+          "name": "min_lock_period_epochs",
+          "type": "u64"
+        }
+      ]
+    },
+    "EsdtLocalRole": {
+      "type": "enum",
+      "variants": [
+        {
+          "name": "None",
+          "discriminant": 0
+        },
+        {
+          "name": "Mint",
+          "discriminant": 1
+        },
+        {
+          "name": "Burn",
+          "discriminant": 2
+        },
+        {
+          "name": "NftCreate",
+          "discriminant": 3
+        },
+        {
+          "name": "NftAddQuantity",
+          "discriminant": 4
+        },
+        {
+          "name": "NftBurn",
+          "discriminant": 5
+        },
+        {
+          "name": "NftAddUri",
+          "discriminant": 6
+        },
+        {
+          "name": "NftUpdateAttributes",
+          "discriminant": 7
+        },
+        {
+          "name": "Transfer",
+          "discriminant": 8
+        }
+      ]
+    },
+    "PairContractMetadata": {
+      "type": "struct",
+      "fields": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "address",
+          "type": "Address"
+        }
+      ]
+    },
+    "PairTokens": {
+      "type": "struct",
+      "fields": [
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        }
+      ]
+    },
+    "UserPairSwapEnabledEvent": {
+      "type": "struct",
+      "fields": [
+        {
+          "name": "caller",
+          "type": "Address"
+        },
+        {
+          "name": "first_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "second_token_id",
+          "type": "TokenIdentifier"
+        },
+        {
+          "name": "pair_address",
+          "type": "Address"
+        }
+      ]
+    }
+  }
+}

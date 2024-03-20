@@ -10,4 +10,25 @@ export class CacheInfo {
       ttl: Constants.oneHour(),
     };
   }
+
+  static PairsMetadata(): CacheInfo {
+    return {
+      key: "pairs-metadata",
+      ttl: Constants.oneMinute(),
+    };
+  }
+
+  static PairFeePercent(pairAddress: string): CacheInfo {
+    return {
+      key: `pair-fee-percent:${pairAddress}`,
+      ttl: Constants.oneMinute() * 10,
+    };
+  }
+
+  static ContractDeployInfo(address: string): CacheInfo {
+    return {
+      key: `contract-deploy-info:${address}`,
+      ttl: Constants.oneDay(),
+    };
+  }
 }
