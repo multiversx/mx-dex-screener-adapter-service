@@ -23,6 +23,7 @@ export class XExchangeAddLiquidityEvent extends XExchangeEvent {
   epoch: number;
   timestamp: number;
   txHash: string;
+  txOrder: number;
   eventOrder: number;
   pair: XExchangePair;
 
@@ -63,6 +64,7 @@ export class XExchangeAddLiquidityEvent extends XExchangeEvent {
     this.timestamp = decodedEvent.timestamp.toNumber();
 
     this.txHash = log.originalTxHash ?? log.txHash;
+    this.txOrder = log.order;
     this.eventOrder = event.order;
     this.pair = pair;
   }
