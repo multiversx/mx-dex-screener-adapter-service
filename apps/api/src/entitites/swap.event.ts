@@ -59,13 +59,13 @@ export class SwapEvent {
       asset1Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
       asset0Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
       asset1Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
-      priceNative = new BigNumber(asset1Out).dividedBy(asset0In).toString();
+      priceNative = new BigNumber(asset1Out).dividedBy(asset0In).toFixed();
     } else {
       asset1In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
       asset0Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
       asset0Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
       asset1Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
-      priceNative = new BigNumber(asset1In).dividedBy(asset0Out).toString();
+      priceNative = new BigNumber(asset1In).dividedBy(asset0Out).toFixed();
     }
 
     return {
