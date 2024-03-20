@@ -23,7 +23,7 @@ export class MultiversXApiService {
     );
   }
 
-  private async getTokenRaw(identifier: string): Promise<Token | null> {
+  public async getTokenRaw(identifier: string): Promise<Token | null> {
     try {
       const { data } = await this.apiService.get(`${this.apiConfigService.getApiUrl()}/tokens/${identifier}`);
       return data as Token;
