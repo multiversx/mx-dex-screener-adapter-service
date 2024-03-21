@@ -1,15 +1,15 @@
 import { ApiConfigModule, DynamicModuleUtils } from "@mvx-monorepo/common";
 import { Module } from "@nestjs/common";
-import { DataIntegrationModule } from "./data-integration";
 import configuration from "../../config/configuration";
+import { CacheWarmerModule } from "./cache-warmer";
 
 @Module({
   imports: [
     ApiConfigModule.forRoot(configuration),
-    DataIntegrationModule,
+    CacheWarmerModule,
   ],
   providers: [
     DynamicModuleUtils.getNestJsApiConfigService(),
   ],
 })
-export class EndpointsModule { }
+export class CronsModule { }

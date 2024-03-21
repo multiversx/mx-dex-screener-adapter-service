@@ -42,10 +42,9 @@ export class XExchangeService {
 
     const pairs: XExchangePair[] = [];
     for (const metadata of pairsMetadata) {
-      const [firstToken, secondToken, feePercent] = await Promise.all([
+      const [firstToken, secondToken] = await Promise.all([
         this.multiversXApiService.getToken(metadata.firstTokenId),
         this.multiversXApiService.getToken(metadata.secondTokenId),
-        this.getPairFeePercent(metadata.address),
       ]);
 
       if (!firstToken || !secondToken) {
@@ -55,7 +54,6 @@ export class XExchangeService {
 
       pairs.push({
         ...metadata,
-        feePercent,
         firstTokenDecimals: firstToken.decimals,
         secondTokenDecimals: secondToken.decimals,
       });
@@ -72,7 +70,7 @@ export class XExchangeService {
     );
   }
 
-  private async getPairsMetadataRaw(): Promise<PairMetadata[]> {
+  public async getPairsMetadataRaw(): Promise<PairMetadata[]> {
     const interaction = this.routerContract.methodsExplicit.getAllPairContractMetadata();
     const responseRaw = await this.queryContract(interaction);
     const response = responseRaw?.firstValue?.valueOf();
@@ -99,7 +97,7 @@ export class XExchangeService {
     return pairsMetadata;
   }
 
-  private async getPairFeePercent(pairAddress: string): Promise<number> {
+  public async getPairFeePercent(pairAddress: string): Promise<number> {
     return await this.cacheService.getOrSet(
       CacheInfo.PairFeePercent(pairAddress).key,
       () => this.getPairFeePercentRaw(pairAddress),
@@ -107,7 +105,7 @@ export class XExchangeService {
     );
   }
 
-  private async getPairFeePercentRaw(pairAddress: string): Promise<number> {
+  public async getPairFeePercentRaw(pairAddress: string): Promise<number> {
     const pairContract = new SmartContract({
       address: new Address(pairAddress),
       abi: AbiRegistry.create(pairAbi),

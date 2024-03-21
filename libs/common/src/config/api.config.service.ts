@@ -23,6 +23,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFail('apps.privateApi.port');
   }
 
+  getOfflineJobsFeaturePort(): number {
+    return this.getOrFail('apps.offlineJobs.port');
+  }
+
   getAxiosTimeout(): number {
     return this.getOrFallback('keepAlive.downstreamTimeout', 61000);
   }

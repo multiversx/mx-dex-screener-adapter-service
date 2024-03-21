@@ -1,5 +1,5 @@
+import { Token } from "@mvx-monorepo/common";
 import { ApiProperty } from "@nestjs/swagger";
-import { Token } from "../services";
 
 export class Asset {
   @ApiProperty()
