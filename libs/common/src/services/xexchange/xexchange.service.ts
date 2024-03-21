@@ -1,5 +1,5 @@
 import { AbiRegistry, Address, Interaction, ResultsParser, SmartContract, TypedOutcomeBundle } from "@multiversx/sdk-core/out";
-import { ApiConfigService, CacheInfo } from "@mvx-monorepo/common";
+import { ApiConfigService, ApiMetricsService, CacheInfo, LogPerformanceAsync, MetricsEvents } from "@mvx-monorepo/common";
 import { Injectable } from "@nestjs/common";
 import { ApiService } from "@multiversx/sdk-nestjs-http";
 import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
@@ -13,6 +13,7 @@ import { IndexerService } from "../indexer";
 import { BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
 import { MultiversXApiService } from "../multiversx.api";
+import { PerformanceProfiler } from "@multiversx/sdk-nestjs-monitoring";
 
 @Injectable()
 export class XExchangeService {
@@ -27,6 +28,7 @@ export class XExchangeService {
     private readonly cacheService: CacheService,
     private readonly indexerService: IndexerService,
     private readonly multiversXApiService: MultiversXApiService,
+    private readonly apiMetricsService: ApiMetricsService,
   ) {
     this.resultsParser = new ResultsParser();
 
@@ -37,6 +39,7 @@ export class XExchangeService {
     });
   }
 
+  @LogPerformanceAsync(MetricsEvents.SetXExchangeDuration)
   public async getPairs(): Promise<XExchangePair[]> {
     const pairsMetadata = await this.getPairsMetadata();
 
@@ -128,14 +131,26 @@ export class XExchangeService {
   }
 
   private async queryContract(interaction: Interaction): Promise<TypedOutcomeBundle> {
-    const request = new ContractQueryRequest(interaction.buildQuery()).toHttpRequest();
-    const httpResponse = await this.apiService.post(`${this.apiConfigService.getApiUrl()}/query`, request, { headers: request.headers });
-    const queryResponse = ContractQueryResponse.fromHttpResponse(httpResponse.data);
+    const performanceProfiler = new PerformanceProfiler();
 
-    const response = this.resultsParser.parseQueryResponse(queryResponse, interaction.getEndpoint());
-    return response;
+    try {
+      const request = new ContractQueryRequest(interaction.buildQuery()).toHttpRequest();
+      const httpResponse = await this.apiService.post(`${this.apiConfigService.getApiUrl()}/query`, request, { headers: request.headers });
+      const queryResponse = ContractQueryResponse.fromHttpResponse(httpResponse.data);
+
+      const response = this.resultsParser.parseQueryResponse(queryResponse, interaction.getEndpoint());
+      return response;
+    } catch (error) {
+      this.logger.error(`Failed to query contract: ${interaction.getEndpoint()}`);
+      this.logger.error(error);
+      throw error;
+    } finally {
+      performanceProfiler.stop();
+      this.apiMetricsService.setVmQueryDurationHistogram(interaction.getEndpoint().name, performanceProfiler.duration);
+    }
   }
 
+  @LogPerformanceAsync(MetricsEvents.SetXExchangeDuration)
   public async getEvents(before: number, after: number): Promise<(XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[]> {
     const pairs = await this.getPairs();
     const pairAddresses = pairs.map((p) => p.address);

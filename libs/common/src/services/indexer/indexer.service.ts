@@ -2,6 +2,7 @@ import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, 
 import { Injectable } from "@nestjs/common";
 import { ElasticLog, ElasticRound } from "./entities";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { LogPerformanceAsync, MetricsEvents } from "@mvx-monorepo/common";
 
 @Injectable()
 export class IndexerService {
@@ -11,6 +12,7 @@ export class IndexerService {
     private readonly elasticService: ElasticService,
   ) { }
 
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
   public async getLatestRound(): Promise<ElasticRound> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 1 })
@@ -21,6 +23,7 @@ export class IndexerService {
     return round;
   }
 
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
   public async getRound(timestamp: number): Promise<ElasticRound | undefined> {
     try {
       const query = ElasticQuery.create()
@@ -38,6 +41,7 @@ export class IndexerService {
     }
   }
 
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
   public async getRounds(fromRound: number, toRound: number): Promise<ElasticRound[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 10_000 })
@@ -56,6 +60,7 @@ export class IndexerService {
     return rounds;
   }
 
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
   public async getLogs(before: number, after: number, addresses: string[], eventNames: string[]): Promise<ElasticLog[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 10000 })
