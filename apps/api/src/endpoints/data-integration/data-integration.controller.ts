@@ -41,7 +41,7 @@ export class DataIntegrationController {
     @Query("fromBlock", ParseIntPipe) fromBlock: number,
     @Query("toBlock", ParseIntPipe) toBlock: number,
   ): Promise<EventsResponse> {
-    const maxBlockRange = 100;
+    const maxBlockRange = 1000;
     if (toBlock - fromBlock > maxBlockRange) {
       throw new BadRequestException(`Block range cannot exceed ${maxBlockRange}`);
     }
