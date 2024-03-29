@@ -18,7 +18,9 @@ export class DataIntegrationService {
     private readonly multiversXApiService: MultiversXApiService,
     xExchangeService: XExchangeService,
   ) {
-    this.providers.push(xExchangeService);
+    this.providers = [
+      xExchangeService,
+    ];
   }
 
   public async getLatestBlock(): Promise<LatestBlockResponse> {
@@ -50,8 +52,15 @@ export class DataIntegrationService {
   }
 
   public async getPair(identifier: string): Promise<PairResponse> {
-    const provider = await this.resolveProvider(identifier);
-    return provider.getPair(identifier);
+    for (const provider of this.providers) {
+      const pairResponse = await provider.getPair(identifier);
+      if (pairResponse) {
+        return pairResponse;
+      }
+    }
+
+    this.logger.error(`Pair with identifier ${identifier} not found`);
+    throw new NotFoundException(`Pair with identifier ${identifier} not found`);
   }
 
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
@@ -64,15 +73,16 @@ export class DataIntegrationService {
     const after = rounds[0].timestamp;
     const before = rounds[rounds.length - 1].timestamp;
 
-    const response = new EventsResponse();
-
+    const allEvents: ({ block: Block } & (SwapEvent | JoinExitEvent))[] = [];
     for (const provider of this.providers) {
       const generalEvents = await provider.getEvents(before, after);
       const event = this.processEvents(generalEvents, provider, rounds);
-      response.events.push(...event);
+      allEvents.push(...event);
     }
 
-    return response;
+    return {
+      events: allEvents,
+    };
   }
 
   private processEvents(generalEvents: GeneralEvent[], provider: IProviderService, rounds: ElasticRound[]): ({ block: Block } & (SwapEvent | JoinExitEvent))[] {
@@ -103,16 +113,5 @@ export class DataIntegrationService {
       });
     }
     return events;
-  }
-
-  private async resolveProvider(identifier: string): Promise<IProviderService> {
-    for (const provider of this.providers) {
-      if (await provider.getPair(identifier) !== undefined) {
-        return provider;
-      }
-    }
-
-    this.logger.error(`Provider with identifier ${identifier} not found`);
-    throw new NotFoundException(`Provider with identifier ${identifier} not found`);
   }
 }
