@@ -18,7 +18,7 @@ export class DataIntegrationService {
     private readonly multiversXApiService: MultiversXApiService,
     xExchangeService: XExchangeService,
   ) {
-    this.providers.push(xExchangeService)
+    this.providers.push(xExchangeService);
   }
 
   public async getLatestBlock(): Promise<LatestBlockResponse> {
@@ -50,7 +50,8 @@ export class DataIntegrationService {
   }
 
   public async getPair(identifier: string): Promise<PairResponse> {
-    return this.resolveProvider(identifier).getPair(identifier);
+    const provider = await this.resolveProvider(identifier);
+    return provider.getPair(identifier);
   }
 
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
@@ -80,11 +81,11 @@ export class DataIntegrationService {
       let event: SwapEvent | JoinExitEvent;
       switch (generalEvent.type) {
         case "swap":
-          event = provider.fromSwapEvent(generalEvent)
+          event = provider.fromSwapEvent(generalEvent);
           break;
         case "addLiquidity":
         case "removeLiquidity":
-          event = provider.fromAddRemoveLiquidityEvent(generalEvent)
+          event = provider.fromAddRemoveLiquidityEvent(generalEvent);
           break;
         default:
           this.logger.error(`Unknown event type: ${generalEvent.type} for event: ${JSON.stringify(generalEvent)}`);
@@ -104,8 +105,8 @@ export class DataIntegrationService {
     return events;
   }
 
-  private resolveProvider(identifier: string): IProviderService {
-    const provider = this.providers.find((p) => p.getPair(identifier) !== undefined);
+  private async resolveProvider(identifier: string): Promise<IProviderService> {
+    const provider = this.providers.find(async (p) => await p.getPair(identifier) !== undefined);
     if (!provider) {
       this.logger.error(`Provider with identifier ${identifier} not found`);
       throw new NotFoundException(`Provider with identifier ${identifier} not found`);

@@ -24,12 +24,8 @@ import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.ev
 import { IProviderService } from "@mvx-monorepo/common/providers";
 import { XExchangePair } from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.pair";
 import { XExchangeSwapEvent } from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.swap.event";
-import {
-  XExchangeAddLiquidityEvent
-} from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.add.liquidity.event";
-import {
-  XExchangeRemoveLiquidityEvent
-} from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.remove.liquidity.event";
+import { XExchangeAddLiquidityEvent } from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.add.liquidity.event";
+import { XExchangeRemoveLiquidityEvent } from "@mvx-monorepo/common/providers/xexchange/entities/xexchange.remove.liquidity.event";
 
 @Injectable()
 export class XExchangeService implements IProviderService {
