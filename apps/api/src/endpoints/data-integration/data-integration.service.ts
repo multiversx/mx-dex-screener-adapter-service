@@ -106,12 +106,13 @@ export class DataIntegrationService {
   }
 
   private async resolveProvider(identifier: string): Promise<IProviderService> {
-    const provider = this.providers.find(async (p) => await p.getPair(identifier) !== undefined);
-    if (!provider) {
-      this.logger.error(`Provider with identifier ${identifier} not found`);
-      throw new NotFoundException(`Provider with identifier ${identifier} not found`);
+    for (const provider of this.providers) {
+      if (await provider.getPair(identifier) !== undefined) {
+        return provider;
+      }
     }
 
-    return provider;
+    this.logger.error(`Provider with identifier ${identifier} not found`);
+    throw new NotFoundException(`Provider with identifier ${identifier} not found`);
   }
 }
