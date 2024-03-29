@@ -221,7 +221,7 @@ export class XExchangeService implements IProviderService {
     const pair = this.fromCustomPair(xExchangePair, pairFeePercent, {
       deployTxHash,
       deployedAt,
-      deployRound: round?.round
+      deployRound: round?.round,
     });
     return {
       pair,
@@ -283,7 +283,7 @@ export class XExchangeService implements IProviderService {
         reserves: {
           asset0: asset0Reserves,
           asset1: asset1Reserves,
-        }
+        },
       };
     }
 
