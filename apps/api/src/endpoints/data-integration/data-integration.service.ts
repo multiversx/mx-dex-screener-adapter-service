@@ -80,8 +80,27 @@ export class DataIntegrationService {
       allEvents.push(...event);
     }
 
+    const sortedEvents = allEvents.sort((a, b) => {
+      if (a.block.blockTimestamp !== b.block.blockTimestamp) {
+        return a.block.blockTimestamp - b.block.blockTimestamp;
+      }
+      return a.txnId.localeCompare(b.txnId);
+    });
+
+    let txnIndex = 0;
+    let lastBlockTimestamp = 0;
+    for (const event of sortedEvents) {
+      if (event.block.blockTimestamp !== lastBlockTimestamp) {
+        txnIndex = 0;
+      } else {
+        txnIndex++;
+      }
+      event.txnIndex = txnIndex;
+      lastBlockTimestamp = event.block.blockTimestamp;
+    }
+
     return {
-      events: allEvents,
+      events: sortedEvents,
     };
   }
 
