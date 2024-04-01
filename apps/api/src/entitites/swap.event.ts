@@ -55,6 +55,13 @@ export class SwapEvent {
       let asset1Reserves: string;
       let priceNative: string;
 
+      if (event.pair.firstTokenDecimals === undefined) {
+        event.pair.firstTokenDecimals = 18;
+      }
+      if (event.pair.secondTokenDecimals === undefined) {
+        event.pair.secondTokenDecimals = 18;
+      }
+
       if (event.pair.firstTokenId === event.tokenInId) {
         asset0In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
         asset1Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
