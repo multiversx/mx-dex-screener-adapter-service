@@ -39,6 +39,13 @@ export class JoinExitEvent {
   static fromXExchangeEvent(event: XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent): JoinExitEvent {
     const eventType = event.type === "addLiquidity" ? "join" : "exit";
 
+    if (event.pair.firstTokenDecimals === undefined) {
+      event.pair.firstTokenDecimals = 18;
+    }
+    if (event.pair.secondTokenDecimals === undefined) {
+      event.pair.secondTokenDecimals = 18;
+    }
+
     return {
       eventType,
       txnId: event.txHash,
