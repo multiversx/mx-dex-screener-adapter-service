@@ -1,3 +1,3 @@
 export * from './indexer';
 export * from './multiversx.api';
-export * from './xexchange';
+export * from '../providers/xexchange';

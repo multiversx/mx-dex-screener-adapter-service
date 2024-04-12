@@ -1,14 +1,9 @@
 import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, TokenIdentifierType, U64Type } from "@multiversx/sdk-core/out";
-import { ElasticEvent, ElasticLog } from "../../indexer";
-import { XExchangeEvent } from "./xexchange.event";
-import { PairEventTopics } from '@multiversx/sdk-exchange';
-import { XExchangePair } from "./pair";
-export class XExchangeLiquidityEvent extends XExchangeEvent {
-  address: string;
-  identifier: string;
-  topics: string[];
-  data: string;
-  decodedTopics: PairEventTopics;
+import { ElasticEvent, ElasticLog } from "@mvx-monorepo/common";
+import { GeneralEvent } from "../../entities/general.event";
+import { XExchangePair } from "./xexchange.pair";
+
+export class XExchangeLiquidityEvent extends GeneralEvent {
   caller: string;
   firstTokenId: string;
   firstTokenAmount: string;
@@ -21,20 +16,13 @@ export class XExchangeLiquidityEvent extends XExchangeEvent {
   secondTokenReserves: string;
   block: number;
   epoch: number;
-  timestamp: number;
   txHash: string;
   txOrder: number;
   eventOrder: number;
   pair: XExchangePair;
 
   constructor(event: ElasticEvent, log: ElasticLog, pair: XExchangePair, eventType: "addLiquidity" | "removeLiquidity") {
-    super(eventType);
-
-    this.address = event.address;
-    this.identifier = event.identifier;
-    this.topics = event.topics;
-    this.data = event.data;
-    this.decodedTopics = new PairEventTopics(this.topics);
+    super(event, eventType);
 
     const decodedEvent = this.decodeEvent();
     this.caller = decodedEvent.caller.bech32();
@@ -69,7 +57,7 @@ export class XExchangeLiquidityEvent extends XExchangeEvent {
     this.pair = pair;
   }
 
-  private decodeEvent() {
+  protected decodeEvent() {
     if (this.data == undefined) {
       throw new Error('Invalid data field');
     }
@@ -84,7 +72,7 @@ export class XExchangeLiquidityEvent extends XExchangeEvent {
   }
 
   private getStructure(): StructType {
-    return new StructType('LiquidityEvent', [
+    return new StructType('XexchangeLiquidityEvent', [
       new FieldDefinition('caller', '', new AddressType()),
       new FieldDefinition('firstTokenID', '', new TokenIdentifierType()),
       new FieldDefinition('firstTokenAmount', '', new BigUIntType()),

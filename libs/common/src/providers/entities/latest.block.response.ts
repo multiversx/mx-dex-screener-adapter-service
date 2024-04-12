@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Block } from "../../../entitites";
+import { Block } from "./block";
 
 export class LatestBlockResponse {
   @ApiProperty()

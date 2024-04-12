@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Pair } from "../../../entitites";
+import { Pair } from "./pair";
 
 export class PairResponse {
   @ApiProperty()

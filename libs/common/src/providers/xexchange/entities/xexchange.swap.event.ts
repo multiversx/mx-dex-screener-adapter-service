@@ -1,15 +1,9 @@
 import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, TokenIdentifierType, U64Type } from "@multiversx/sdk-core/out";
-import { ElasticEvent, ElasticLog } from "../../indexer";
-import { PairEventTopics } from '@multiversx/sdk-exchange';
-import { XExchangeEvent } from "./xexchange.event";
-import { XExchangePair } from "./pair";
+import { ElasticEvent, ElasticLog } from "@mvx-monorepo/common";
+import { GeneralEvent } from "../../entities/general.event";
+import { XExchangePair } from "./xexchange.pair";
 
-export class XExchangeSwapEvent extends XExchangeEvent {
-  address: string;
-  identifier: string;
-  topics: string[];
-  data: string;
-  decodedTopics: PairEventTopics;
+export class XExchangeSwapEvent extends GeneralEvent {
   caller: string;
   tokenInId: string;
   tokenInAmount: string;
@@ -20,20 +14,13 @@ export class XExchangeSwapEvent extends XExchangeEvent {
   tokenOutReserves: string;
   block: number;
   epoch: number;
-  timestamp: number;
   txHash: string;
   txOrder: number;
   eventOrder: number;
   pair: XExchangePair;
 
   constructor(event: ElasticEvent, log: ElasticLog, pair: XExchangePair) {
-    super('swap');
-
-    this.address = event.address;
-    this.identifier = event.identifier;
-    this.topics = event.topics;
-    this.data = event.data;
-    this.decodedTopics = new PairEventTopics(this.topics);
+    super(event, 'swap');
 
     const decodedEvent = this.decodeEvent();
     this.caller = decodedEvent.caller.bech32();
