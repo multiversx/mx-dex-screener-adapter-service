@@ -3,7 +3,7 @@ import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.ev
 
 export interface IProviderService {
     getPair(address: string): Promise<PairResponse>;
-    getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<GeneralEvent[]>;
+    getEvents(before: number, after: number): Promise<GeneralEvent[]>;
     getProviderName(): string;
     fromSwapEvent(event: GeneralEvent): SwapEvent;
     fromAddRemoveLiquidityEvent(event: GeneralEvent): JoinExitEvent;
