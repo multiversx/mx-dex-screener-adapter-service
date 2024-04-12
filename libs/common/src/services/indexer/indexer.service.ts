@@ -29,7 +29,7 @@ export class IndexerService {
       const query = ElasticQuery.create()
         .withPagination({ from: 0, size: 1 })
         .withFields(['round', 'epoch', 'timestamp'])
-        .withMustCondition(new MatchQuery('timestamp', timestamp));
+        .withMustCondition(new MatchQuery('timestamp', timestamp.toString()));
 
       const rounds = await this.elasticService.getList('rounds', 'id', query);
       return rounds.length > 0 ? rounds[0] : undefined;
