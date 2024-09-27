@@ -71,6 +71,10 @@ export class ApiConfigService extends BaseConfigService {
     return this.getOrFail('xExchange.routerAddress');
   }
 
+  getOneDexSwapAddress(): string {
+    return this.getOrFail('onedex.swapAddress');
+  }
+
   getWrappedEGLDIdentifier(): string {
     return this.getOrFail('tokens.WEGLD');
   }

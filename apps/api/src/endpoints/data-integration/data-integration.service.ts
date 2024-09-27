@@ -7,6 +7,7 @@ import {
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { IProviderService } from "@mvx-monorepo/common/providers/interface";
 import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.event";
+import { OneDexService } from "@mvx-monorepo/common/providers";
 
 @Injectable()
 export class DataIntegrationService {
@@ -17,9 +18,11 @@ export class DataIntegrationService {
     private readonly indexerService: IndexerService,
     private readonly multiversXApiService: MultiversXApiService,
     xExchangeService: XExchangeService,
+    oneDexService: OneDexService,
   ) {
     this.providers = [
       xExchangeService,
+      oneDexService,
     ];
   }
 

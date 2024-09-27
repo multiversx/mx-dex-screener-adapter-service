@@ -8,6 +8,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 export class ApiMetricsService {
   private static indexerDurationHistogram: Histogram<string>;
   private static xExchangeDurationHistogram: Histogram<string>;
+  private static onedexDurationHistogram: Histogram<string>;
   private static vmQueryDurationHistogram: Histogram<string>;
 
   constructor(
@@ -26,6 +27,15 @@ export class ApiMetricsService {
       ApiMetricsService.xExchangeDurationHistogram = new Histogram({
         name: 'xexchange_duration',
         help: 'xExchange Duration',
+        labelNames: ['action'],
+        buckets: [],
+      });
+    }
+
+    if (!ApiMetricsService.onedexDurationHistogram) {
+      ApiMetricsService.onedexDurationHistogram = new Histogram({
+        name: 'onedex_duration',
+        help: 'OneDex Duration',
         labelNames: ['action'],
         buckets: [],
       });
@@ -53,6 +63,13 @@ export class ApiMetricsService {
     const [action, duration] = payload.args;
     this.metricsService.setExternalCall('xexchange', duration);
     ApiMetricsService.xExchangeDurationHistogram.labels(action).observe(duration);
+  }
+
+  @OnEvent(MetricsEvents.SetOneDexDuration)
+  setOneDexDurationHistogram(payload: LogMetricsEvent) {
+    const [action, duration] = payload.args;
+    this.metricsService.setExternalCall('onedex', duration);
+    ApiMetricsService.onedexDurationHistogram.labels(action).observe(duration);
   }
 
   setVmQueryDurationHistogram(endpoint: string, duration: number) {

@@ -20,6 +20,8 @@ caching:
   processTtl: 60
 xExchange:
   routerAddress: 'erd1qqqqqqqqqqqqqpgqq66xk9gfr4esuhem3jru86wg5hvp33a62jps2fy57p'
+onedex:
+  swapAddress: 'erd1qqqqqqqqqqqqqpgqqz6vp9y50ep867vnr296mqf3dduh6guvmvlsu3sujc'
 tokens:
   WEGLD: 'WEGLD-bd4d79'
   WUSDC: 'USDC-c76f1f'
