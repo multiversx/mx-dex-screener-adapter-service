@@ -147,10 +147,11 @@ export class OneDexService implements IProviderService {
   public async getEvents(before: number, after: number): Promise<GeneralEvent[]> {
     const pairs = await this.getPairs();
 
-    const swapTopic = BinaryUtils.base64Encode("SwapTokensFixedInputEvent");
+    const swapInputTopic = BinaryUtils.base64Encode("SwapTokensFixedInputEvent");
+    const swapOutputTopic = BinaryUtils.base64Encode("SwapTokensFixedOutputEvent");
     // const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
     // const removeLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.REMOVE_LIQUIDITY);
-    const eventNames = [swapTopic];
+    const eventNames = [swapInputTopic, swapOutputTopic];
 
     const logs = await this.indexerService.getLogs(before, after, [this.swapAddress], eventNames);
 
@@ -159,7 +160,8 @@ export class OneDexService implements IProviderService {
     for (const log of logs) {
       for (const event of log.events) {
         switch (event.topics[0]) {
-          case swapTopic:
+          case swapInputTopic:
+          case swapOutputTopic:
             const swapEvent = new OneDexSwapEvent(event, log, pairs);
             events.push(swapEvent);
             break;
