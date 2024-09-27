@@ -70,8 +70,8 @@ export class DataIntegrationService {
         events: [],
       };
     }
-    const after = parseInt(rounds[0].timestamp);
-    const before = parseInt(rounds[rounds.length - 1].timestamp);
+    const after = rounds[0].timestamp;
+    const before = rounds[rounds.length - 1].timestamp;
 
     const allEvents: ({ block: Block } & (SwapEvent | JoinExitEvent))[] = [];
     for (const provider of this.providers) {
@@ -120,7 +120,7 @@ export class DataIntegrationService {
           this.logger.error(`Unknown event type: ${generalEvent.type} for event: ${JSON.stringify(generalEvent)}`);
           continue;
       }
-      const round = rounds.find((round: { timestamp: string }) => round.timestamp === generalEvent.timestamp.toString());
+      const round = rounds.find((round: { timestamp: number }) => round.timestamp === generalEvent.timestamp);
       if (!round) {
         this.logger.error(`Round not found for event: ${JSON.stringify(generalEvent)}`);
         continue;

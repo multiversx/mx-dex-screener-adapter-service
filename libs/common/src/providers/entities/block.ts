@@ -15,13 +15,13 @@ export class Block {
     if (options?.onlyRequiredFields) {
       return {
         blockNumber: round.round,
-        blockTimestamp: parseInt(round.timestamp),
+        blockTimestamp: round.timestamp,
       };
     }
 
     return {
       blockNumber: round.round,
-      blockTimestamp: parseInt(round.timestamp),
+      blockTimestamp: round.timestamp,
       metadata: {
         epoch: round.epoch.toString(),
       },
