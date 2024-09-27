@@ -7,6 +7,7 @@ import {
   ApiMetricsService,
   MultiversXApiService,
   CacheInfo,
+  IndexerService,
 } from "@mvx-monorepo/common";
 import { Injectable } from "@nestjs/common";
 import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.event";
@@ -16,10 +17,12 @@ import swapAbi from "./abis/swap.abi.json";
 import { AbiRegistry, Address, Interaction, ResultsParser, SmartContract, TypedOutcomeBundle, U32Value } from "@multiversx/sdk-core/out";
 import { PerformanceProfiler } from "@multiversx/sdk-nestjs-monitoring";
 import { ContractQueryRequest } from "@multiversx/sdk-network-providers/out/contractQueryRequest";
-import { OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { ApiService } from "@multiversx/sdk-nestjs-http";
 import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
+import { OneDexSwapEvent } from "./entities/onedex.swap.event";
+import BigNumber from "bignumber.js";
 
 @Injectable()
 export class OneDexService implements IProviderService {
@@ -35,6 +38,7 @@ export class OneDexService implements IProviderService {
     private readonly apiMetricsService: ApiMetricsService,
     private readonly multiversXApiService: MultiversXApiService,
     private readonly cacheService: CacheService,
+    private readonly indexerService: IndexerService,
   ) {
     this.resultsParser = new ResultsParser();
 
@@ -140,20 +144,89 @@ export class OneDexService implements IProviderService {
   }
 
   @LogPerformanceAsync(MetricsEvents.SetOneDexDuration)
-  public async getEvents(_before: number, _after: number): Promise<GeneralEvent[]> {
-    throw new Error("Method not implemented.");
+  public async getEvents(before: number, after: number): Promise<GeneralEvent[]> {
+    const pairs = await this.getPairs();
+
+    const swapTopic = BinaryUtils.base64Encode("SwapTokensFixedInputEvent");
+    // const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
+    // const removeLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.REMOVE_LIQUIDITY);
+    const eventNames = [swapTopic];
+
+    const logs = await this.indexerService.getLogs(before, after, [this.swapAddress], eventNames);
+
+    // const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexRemoveLiquidityEvent)[] = [];
+    const events: (OneDexSwapEvent)[] = [];
+    for (const log of logs) {
+      for (const event of log.events) {
+        switch (event.topics[0]) {
+          case swapTopic:
+            const swapEvent = new OneDexSwapEvent(event, log, pairs);
+            events.push(swapEvent);
+            break;
+          // TODO
+          // case addLiquidityTopic:
+          //   const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log, pair);
+          //   events.push(addLiquidityEvent);
+          //   break;
+          // case removeLiquidityTopic:
+          //   const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log, pair);
+          //   events.push(removeLiquidityEvent);
+          //   break;
+          default:
+            this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
+        }
+      }
+    }
+
+    return events;
   }
 
   public getProviderName(): string {
     return "OneDex";
   }
 
-  @LogPerformanceAsync(MetricsEvents.SetOneDexDuration)
-  public fromSwapEvent(_event: GeneralEvent): SwapEvent {
-    throw new Error("Method not implemented.");
+  public fromSwapEvent(event: OneDexSwapEvent): SwapEvent {
+    let asset0In: string | undefined = undefined;
+    let asset1In: string | undefined = undefined;
+    let asset0Out: string | undefined = undefined;
+    let asset1Out: string | undefined = undefined;
+    let asset0Reserves: string;
+    let asset1Reserves: string;
+    let priceNative: string;
+
+    if (event.pair.firstTokenId === event.tokenInId) {
+      asset0In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      asset0Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
+    } else {
+      asset1In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      asset0Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset0Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
+    }
+
+    return {
+      eventType: "swap",
+      txnId: event.txHash,
+      txnIndex: event.txOrder,
+      eventIndex: event.eventOrder,
+      maker: event.caller,
+      pairId: event.address,
+      asset0In,
+      asset1In,
+      asset0Out,
+      asset1Out,
+      priceNative,
+      reserves: {
+        asset0: asset0Reserves,
+        asset1: asset1Reserves,
+      },
+    };
   }
 
-  @LogPerformanceAsync(MetricsEvents.SetOneDexDuration)
   public fromAddRemoveLiquidityEvent(_event: GeneralEvent): JoinExitEvent {
     throw new Error("Method not implemented.");
   }
