@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { DynamicModuleUtils } from "@mvx-monorepo/common";
 import { XExchangeService } from "./xexchange.service";
-import { IndexerModule } from "../indexer";
-import { MultiversXApiModule } from "../multiversx.api";
+import { IndexerModule } from "../../services/indexer";
+import { MultiversXApiModule } from "../../services/multiversx.api";
 
 @Module({})
 export class XExchangeModule {

@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Block, JoinExitEvent, SwapEvent } from "../../../entitites";
+import { Block } from "./block";
+import { SwapEvent } from "./swap.event";
+import { JoinExitEvent } from "./join.exit.event";
 
 export class EventsResponse {
   @ApiProperty()

@@ -1,5 +1,5 @@
 import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
-import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "./entities";
+import { AssetResponse, EventsResponse, LatestBlockResponse, PairResponse } from "@mvx-monorepo/common";
 import { ApiResponse } from "@nestjs/swagger";
 import { DataIntegrationService } from "./data-integration.service";
 import { ParseIntPipe } from "@multiversx/sdk-nestjs-common";
