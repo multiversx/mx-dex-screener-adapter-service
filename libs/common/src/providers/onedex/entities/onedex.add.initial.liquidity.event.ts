@@ -14,8 +14,6 @@ export class OneDexAddInitialLiquidityEvent extends GeneralEvent {
   liquidityPoolSupply: string;
   firstTokenReserves: string;
   secondTokenReserves: string;
-  // block: number;
-  // epoch: number;
   txHash: string;
   txOrder: number;
   eventOrder: number;
@@ -23,10 +21,6 @@ export class OneDexAddInitialLiquidityEvent extends GeneralEvent {
 
   constructor(event: ElasticEvent, log: ElasticLog, pairs: OneDexPair[]) {
     super(event, "addLiquidity");
-
-    // TODO
-    // this.block = decodedEvent.block.toNumber();
-    // this.epoch = decodedEvent.epoch.toNumber();
 
     this.caller = AddressUtils.bech32Encode(BinaryUtils.base64ToHex(event.topics[1]));
 

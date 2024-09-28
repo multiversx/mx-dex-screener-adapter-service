@@ -222,7 +222,7 @@ export class OneDexService implements IProviderService {
       txnIndex: event.txOrder,
       eventIndex: event.eventOrder,
       maker: event.caller,
-      pairId: event.address,
+      pairId: event.pair.address,
       asset0In,
       asset1In,
       asset0Out,
@@ -235,8 +235,23 @@ export class OneDexService implements IProviderService {
     };
   }
 
-  public fromAddRemoveLiquidityEvent(_event: GeneralEvent): JoinExitEvent {
-    throw new Error("Method not implemented.");
+  public fromAddRemoveLiquidityEvent(event: OneDexAddInitialLiquidityEvent | OneDexAddLiquidityEvent | OneDexRemoveLiquidityEvent): JoinExitEvent {
+    const eventType = event.type === "addLiquidity" ? "join" : "exit";
+
+    return {
+      eventType,
+      txnId: event.txHash,
+      txnIndex: event.txOrder,
+      eventIndex: event.eventOrder,
+      maker: event.caller,
+      pairId: event.pair.address,
+      amount0: new BigNumber(event.firstTokenAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed(),
+      amount1: new BigNumber(event.secondTokenAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed(),
+      reserves: {
+        asset0: new BigNumber(event.firstTokenReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed(),
+        asset1: new BigNumber(event.secondTokenReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed(),
+      },
+    };
   }
 
   private async queryContract(interaction: Interaction): Promise<TypedOutcomeBundle> {
