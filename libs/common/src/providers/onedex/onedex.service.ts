@@ -23,6 +23,8 @@ import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import { OneDexSwapEvent } from "./entities/onedex.swap.event";
 import BigNumber from "bignumber.js";
+import { OneDexAddLiquidityEvent } from "./entities/onedex.add.liquidity.event";
+import { OneDexAddInitialLiquidityEvent } from "./entities/onedex.add.initial.liquidity.event";
 
 @Injectable()
 export class OneDexService implements IProviderService {
@@ -149,14 +151,14 @@ export class OneDexService implements IProviderService {
 
     const swapInputTopic = BinaryUtils.base64Encode("SwapTokensFixedInputEvent");
     const swapOutputTopic = BinaryUtils.base64Encode("SwapTokensFixedOutputEvent");
-    // const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
-    // const removeLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.REMOVE_LIQUIDITY);
-    const eventNames = [swapInputTopic, swapOutputTopic];
+    const addInitialLiquidityTopic = BinaryUtils.base64Encode("AddInitialLiquidityEvent");
+    const addLiquidityTopic = BinaryUtils.base64Encode("AddLiquidityEvent");
+    const removeLiquidityTopic = BinaryUtils.base64Encode("RemoveLiquidityEvent");
+    const eventNames = [swapInputTopic, swapOutputTopic, addInitialLiquidityTopic, addLiquidityTopic, removeLiquidityTopic];
 
     const logs = await this.indexerService.getLogs(before, after, [this.swapAddress], eventNames);
 
-    // const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexRemoveLiquidityEvent)[] = [];
-    const events: (OneDexSwapEvent)[] = [];
+    const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexAddInitialLiquidityEvent)[] = [];
     for (const log of logs) {
       for (const event of log.events) {
         switch (event.topics[0]) {
@@ -165,13 +167,16 @@ export class OneDexService implements IProviderService {
             const swapEvent = new OneDexSwapEvent(event, log, pairs);
             events.push(swapEvent);
             break;
-          // TODO
-          // case addLiquidityTopic:
-          //   const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log, pair);
-          //   events.push(addLiquidityEvent);
-          //   break;
+          case addInitialLiquidityTopic:
+            const addInitialLiquidityEvent = new OneDexAddInitialLiquidityEvent(event, log, pairs);
+            events.push(addInitialLiquidityEvent);
+            break;
+          case addLiquidityTopic:
+            const addLiquidityEvent = new OneDexAddLiquidityEvent(event, log, pairs);
+            events.push(addLiquidityEvent);
+            break;
           // case removeLiquidityTopic:
-          //   const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log, pair);
+          //   const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, log, pair);
           //   events.push(removeLiquidityEvent);
           //   break;
           default:
