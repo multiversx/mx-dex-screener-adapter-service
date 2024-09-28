@@ -25,6 +25,7 @@ import { OneDexSwapEvent } from "./entities/onedex.swap.event";
 import BigNumber from "bignumber.js";
 import { OneDexAddLiquidityEvent } from "./entities/onedex.add.liquidity.event";
 import { OneDexAddInitialLiquidityEvent } from "./entities/onedex.add.initial.liquidity.event";
+import { OneDexRemoveLiquidityEvent } from "./entities/onedex.remove.liquidity.event";
 
 @Injectable()
 export class OneDexService implements IProviderService {
@@ -158,7 +159,7 @@ export class OneDexService implements IProviderService {
 
     const logs = await this.indexerService.getLogs(before, after, [this.swapAddress], eventNames);
 
-    const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexAddInitialLiquidityEvent)[] = [];
+    const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexAddInitialLiquidityEvent | OneDexRemoveLiquidityEvent)[] = [];
     for (const log of logs) {
       for (const event of log.events) {
         switch (event.topics[0]) {
@@ -175,10 +176,10 @@ export class OneDexService implements IProviderService {
             const addLiquidityEvent = new OneDexAddLiquidityEvent(event, log, pairs);
             events.push(addLiquidityEvent);
             break;
-          // case removeLiquidityTopic:
-          //   const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, log, pair);
-          //   events.push(removeLiquidityEvent);
-          //   break;
+          case removeLiquidityTopic:
+            const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, log, pairs);
+            events.push(removeLiquidityEvent);
+            break;
           default:
             this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
         }
