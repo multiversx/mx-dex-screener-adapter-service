@@ -66,10 +66,6 @@ export class OneDexService implements IProviderService {
       asset0Id: oneDexPair.firstTokenId,
       asset1Id: oneDexPair.secondTokenId,
       feeBps: oneDexPair.pairFeePercent,
-      // TODO
-      //   deployTxHash,
-      //   deployedAt,
-      //   deployRound: round?.round,
     };
 
     return {
@@ -102,7 +98,7 @@ export class OneDexService implements IProviderService {
         firstTokenDecimals: firstToken.decimals,
         secondTokenId: rawPair.second_token_id,
         secondTokenDecimals: secondToken.decimals,
-        pairFeePercent: rawPair.total_fee_percentage, // TODO: decimals
+        pairFeePercent: rawPair.total_fee_percentage,
       }
       pairs.push(pair);
     }

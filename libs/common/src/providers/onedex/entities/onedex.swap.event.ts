@@ -9,11 +9,8 @@ export class OneDexSwapEvent extends GeneralEvent {
   tokenInAmount: string;
   tokenOutId: string;
   tokenOutAmount: string;
-  // feeAmount: string;
   tokenInReserves: string;
   tokenOutReserves: string;
-  // block: number;
-  // epoch: number;
   txHash: string;
   txOrder: number;
   eventOrder: number;
@@ -21,11 +18,6 @@ export class OneDexSwapEvent extends GeneralEvent {
 
   constructor(event: ElasticEvent, log: ElasticLog, pairs: OneDexPair[]) {
     super(event, 'swap');
-
-    // TODO
-    // this.feeAmount = decodedEvent.feeAmount.toFixed();
-    // this.block = decodedEvent.block.toNumber();
-    // this.epoch = decodedEvent.epoch.toNumber();
 
     this.caller = AddressUtils.bech32Encode(BinaryUtils.base64ToHex(event.topics[1]));
 
