@@ -99,7 +99,7 @@ export class OneDexService implements IProviderService {
         secondTokenId: rawPair.second_token_id,
         secondTokenDecimals: secondToken.decimals,
         pairFeePercent: rawPair.total_fee_percentage,
-      }
+      };
       pairs.push(pair);
     }
 
