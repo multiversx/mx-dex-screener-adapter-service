@@ -31,4 +31,11 @@ export class CacheInfo {
       ttl: Constants.oneDay(),
     };
   }
+
+  static OneDexPairsMetadata(): CacheInfo {
+    return {
+      key: "onedex:pairs-metadata",
+      ttl: Constants.oneHour(),
+    };
+  }
 }

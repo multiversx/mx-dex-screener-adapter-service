@@ -2,7 +2,7 @@ import { JoinExitEvent, PairResponse, SwapEvent } from "./entities";
 import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.event";
 
 export interface IProviderService {
-    getPair(address: string): Promise<PairResponse>;
+    getPair(address: string): Promise<PairResponse | undefined>;
     getEvents(before: number, after: number): Promise<GeneralEvent[]>;
     getProviderName(): string;
     fromSwapEvent(event: GeneralEvent): SwapEvent;

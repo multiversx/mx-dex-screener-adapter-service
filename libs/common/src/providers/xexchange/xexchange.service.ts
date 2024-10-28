@@ -6,7 +6,7 @@ import {
   LogPerformanceAsync,
   MetricsEvents, Pair, PairResponse, SwapEvent,
 } from "@mvx-monorepo/common";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ApiService } from "@multiversx/sdk-nestjs-http";
 import { ContractQueryResponse } from "@multiversx/sdk-network-providers/out";
 import { ContractQueryRequest } from "@multiversx/sdk-network-providers/out/contractQueryRequest";
@@ -205,12 +205,11 @@ export class XExchangeService implements IProviderService {
     return events;
   }
 
-  public async getPair(identifier: string): Promise<PairResponse> {
+  public async getPair(identifier: string): Promise<PairResponse | undefined> {
     const xExchangePairs = await this.getPairs();
     const xExchangePair = xExchangePairs.find((p) => p.address === identifier);
     if (!xExchangePair) {
-      this.logger.error(`Pair with address ${identifier} not found`);
-      throw new NotFoundException(`Pair with address ${identifier} not found`);
+      return undefined;
     }
 
     const pairFeePercent = await this.getPairFeePercent(identifier);
@@ -233,59 +232,59 @@ export class XExchangeService implements IProviderService {
   }
 
   private fromCustomPair(pair: XExchangePair, feePercent: number, deployInfo?: { deployRound?: number, deployTxHash?: string, deployedAt?: number }): Pair {
-      return {
-        id: pair.address,
-        dexKey: this.getProviderName(),
-        asset0Id: pair.firstTokenId,
-        asset1Id: pair.secondTokenId,
-        feeBps: feePercent * 100,
-        createdAtBlockNumber: deployInfo?.deployRound,
-        createdAtBlockTimestamp: deployInfo?.deployedAt,
-        createdAtTxnId: deployInfo?.deployTxHash,
-      };
+    return {
+      id: pair.address,
+      dexKey: this.getProviderName(),
+      asset0Id: pair.firstTokenId,
+      asset1Id: pair.secondTokenId,
+      feeBps: feePercent * 100,
+      createdAtBlockNumber: deployInfo?.deployRound,
+      createdAtBlockTimestamp: deployInfo?.deployedAt,
+      createdAtTxnId: deployInfo?.deployTxHash,
+    };
   }
 
   public fromSwapEvent(event: XExchangeSwapEvent): SwapEvent {
-      let asset0In: string | undefined = undefined;
-      let asset1In: string | undefined = undefined;
-      let asset0Out: string | undefined = undefined;
-      let asset1Out: string | undefined = undefined;
-      let asset0Reserves: string;
-      let asset1Reserves: string;
-      let priceNative: string;
+    let asset0In: string | undefined = undefined;
+    let asset1In: string | undefined = undefined;
+    let asset0Out: string | undefined = undefined;
+    let asset1Out: string | undefined = undefined;
+    let asset0Reserves: string;
+    let asset1Reserves: string;
+    let priceNative: string;
 
-      if (event.pair.firstTokenId === event.tokenInId) {
-        asset0In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
-        asset1Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
-        asset0Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
-        asset1Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
-        priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
-      } else {
-        asset1In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
-        asset0Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
-        asset0Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
-        asset1Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
-        priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
-      }
-
-      return {
-        eventType: "swap",
-        txnId: event.txHash,
-        txnIndex: event.txOrder,
-        eventIndex: event.eventOrder,
-        maker: event.caller,
-        pairId: event.address,
-        asset0In,
-        asset1In,
-        asset0Out,
-        asset1Out,
-        priceNative,
-        reserves: {
-          asset0: asset0Reserves,
-          asset1: asset1Reserves,
-        },
-      };
+    if (event.pair.firstTokenId === event.tokenInId) {
+      asset0In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      asset0Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
+    } else {
+      asset1In = new BigNumber(event.tokenInAmount).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      asset0Out = new BigNumber(event.tokenOutAmount).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset0Reserves = new BigNumber(event.tokenOutReserves).shiftedBy(-event.pair.firstTokenDecimals).toFixed();
+      asset1Reserves = new BigNumber(event.tokenInReserves).shiftedBy(-event.pair.secondTokenDecimals).toFixed();
+      priceNative = new BigNumber(asset1Reserves).dividedBy(asset0Reserves).toFixed();
     }
+
+    return {
+      eventType: "swap",
+      txnId: event.txHash,
+      txnIndex: event.txOrder,
+      eventIndex: event.eventOrder,
+      maker: event.caller,
+      pairId: event.address,
+      asset0In,
+      asset1In,
+      asset0Out,
+      asset1Out,
+      priceNative,
+      reserves: {
+        asset0: asset0Reserves,
+        asset1: asset1Reserves,
+      },
+    };
+  }
 
   public fromAddRemoveLiquidityEvent(event: XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent): JoinExitEvent {
     const eventType = event.type === "addLiquidity" ? "join" : "exit";
