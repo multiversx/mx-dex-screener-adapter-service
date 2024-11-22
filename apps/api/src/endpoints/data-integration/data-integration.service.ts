@@ -4,7 +4,7 @@ import {
   IndexerService, JoinExitEvent, LatestBlockResponse,
   MultiversXApiService, PairResponse, SwapEvent, XExchangeService,
 } from "@mvx-monorepo/common";
-import { OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { AddressUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { IProviderService } from "@mvx-monorepo/common/providers/interface";
 import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.event";
 import { OneDexService } from "@mvx-monorepo/common/providers";
@@ -83,6 +83,8 @@ export class DataIntegrationService {
       allEvents.push(...event);
     }
 
+    await this.updateEventsCaller(allEvents);
+
     const sortedEvents = allEvents.sort((a, b) => {
       if (a.block.blockTimestamp !== b.block.blockTimestamp) {
         return a.block.blockTimestamp - b.block.blockTimestamp;
@@ -135,5 +137,27 @@ export class DataIntegrationService {
       });
     }
     return events;
+  }
+
+  private async updateEventsCaller(events: ({ block: Block } & (SwapEvent | JoinExitEvent))[]) {
+    const filteredEvents = events.filter(event => AddressUtils.isSmartContractAddress(event.maker));
+
+    const txHashes = filteredEvents.map(event => event.txnId)
+
+    const transactions = await this.indexerService.getTxDetails(txHashes);
+
+    const txToCallerMap = new Map<string, string>(
+      transactions.map(transaction => [transaction.txHash, transaction.sender])
+    );
+
+    for (const event of events) {
+      if (AddressUtils.isSmartContractAddress(event.maker)) {
+        const callerFromMap = txToCallerMap.get(event.txnId);
+        if (callerFromMap) {
+          event.maker = callerFromMap;
+        }
+      }
+    }
+    console.log(txToCallerMap)
   }
 }

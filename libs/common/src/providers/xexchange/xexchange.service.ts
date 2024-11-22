@@ -16,7 +16,7 @@ import { PairMetadata } from "../entities";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import BigNumber from "bignumber.js";
 import { IndexerService } from "../../services/indexer";
-import { AddressUtils, BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
 import { MultiversXApiService } from "../../services/multiversx.api";
 import { PerformanceProfiler } from "@multiversx/sdk-nestjs-monitoring";
@@ -201,25 +201,6 @@ export class XExchangeService implements IProviderService {
         }
       }
 
-    }
-
-    const filteredEvents = events.filter(event => AddressUtils.isSmartContractAddress(event.caller));
-
-    const txHashes = filteredEvents.map(event => event.txHash)
-
-    const transactions = await this.indexerService.getTxDetails(txHashes);
-
-    const txToCallerMap = new Map<string, string>(
-      transactions.map(transaction => [transaction.txHash, transaction.sender])
-    );
-
-    for (const event of events) {
-      if (AddressUtils.isSmartContractAddress(event.caller)) {
-        const callerFromMap = txToCallerMap.get(event.txHash);
-        if (callerFromMap) {
-          event.caller = callerFromMap;
-        }
-      }
     }
 
     return events;
