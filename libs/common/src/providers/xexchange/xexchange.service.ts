@@ -16,7 +16,7 @@ import { PairMetadata } from "../entities";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import BigNumber from "bignumber.js";
 import { IndexerService } from "../../services/indexer";
-import { BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { AddressUtils, BinaryUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { PAIR_EVENTS } from "@multiversx/sdk-exchange";
 import { MultiversXApiService } from "../../services/multiversx.api";
 import { PerformanceProfiler } from "@multiversx/sdk-nestjs-monitoring";
@@ -202,14 +202,22 @@ export class XExchangeService implements IProviderService {
       }
 
     }
-    const swapEvents = events.filter(event => event instanceof XExchangeSwapEvent && (new Address(event.caller)).isContractAddress());
-    const txHashes = swapEvents.map(event => event.txHash)
-    const txCallerPairs = await this.indexerService.getTxCallerPairs(txHashes)
+
+    const filteredEvents = events.filter(event => AddressUtils.isSmartContractAddress(event.caller));
+
+    const txHashes = filteredEvents.map(event => event.txHash)
+
+    const transactions = await this.indexerService.getTxDetails(txHashes);
+
+    const txToCallerMap = new Map<string, string>(
+      transactions.map(transaction => [transaction.txHash, transaction.sender])
+    );
+
     for (const event of events) {
-      if (event instanceof XExchangeSwapEvent && (new Address(event.caller)).isContractAddress()) {
-        const matchingPair = txCallerPairs.find(pair => pair.tx === event.txHash);
-        if (matchingPair) {
-          event.caller = matchingPair.caller;
+      if (AddressUtils.isSmartContractAddress(event.caller)) {
+        const callerFromMap = txToCallerMap.get(event.txHash);
+        if (callerFromMap) {
+          event.caller = callerFromMap;
         }
       }
     }
