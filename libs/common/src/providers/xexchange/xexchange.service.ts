@@ -200,6 +200,18 @@ export class XExchangeService implements IProviderService {
             this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
         }
       }
+
+    }
+    const swapEvents = events.filter(event => event instanceof XExchangeSwapEvent && (new Address(event.caller)).isContractAddress());
+    const txHashes = swapEvents.map(event => event.txHash)
+    const txCallerPairs = await this.indexerService.getTxCallerPairs(txHashes)
+    for (const event of events) {
+      if (event instanceof XExchangeSwapEvent && (new Address(event.caller)).isContractAddress()) {
+        const matchingPair = txCallerPairs.find(pair => pair.tx === event.txHash);
+        if (matchingPair) {
+          event.caller = matchingPair.caller;
+        }
+      }
     }
 
     return events;

@@ -96,4 +96,26 @@ export class IndexerService {
 
     return logs;
   }
+
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
+  public async getTxCallerPairs(txHashes: string[]) {
+    const query = ElasticQuery.create()
+      .withPagination({ from: 0, size: 10000 })
+      .withMustCondition([
+        QueryType.Should(txHashes.map(txHash => new MatchQuery("_id", txHash))),
+      ]);
+
+    const txCallerPairs: {
+      tx: any; caller: any
+    }[] = [];
+
+    await this.elasticService.getScrollableList('operations', 'txHash', query, async (transactions) => {
+      const txCallerPairsTemp = transactions.map(transaction => ({ tx: transaction.txHash, caller: transaction.sender }));
+      txCallerPairs.push(...txCallerPairsTemp);
+    }, {
+      scrollTimeout: '10m',
+    });
+
+    return txCallerPairs;
+  }
 }
