@@ -42,7 +42,7 @@ export class MultiversXApiService {
   public async getContractDeployInfo(address: string): Promise<{ deployTxHash?: string, deployedAt?: number }> {
     return await this.cacheService.getOrSet(
       CacheInfo.ContractDeployInfo(address).key,
-      () => this.getContractDeployInfoRaw(address),
+      async () => await this.getContractDeployInfoRaw(address),
       CacheInfo.ContractDeployInfo(address).ttl,
     );
   }

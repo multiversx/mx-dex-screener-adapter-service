@@ -144,7 +144,7 @@ export class DataIntegrationService {
 
     const txHashes = filteredEvents.map(event => event.txnId);
 
-    const transactions = await this.indexerService.getTxDetails(txHashes);
+    const transactions = await this.getTxDetailsInBatches(txHashes, 200);
 
     const txToCallerMap = new Map<string, string>(
       transactions.map(transaction => [transaction.txHash, transaction.sender])
@@ -158,5 +158,20 @@ export class DataIntegrationService {
         }
       }
     }
+  }
+
+  private async getTxDetailsInBatches(txHashes: string[], batchSize: number) {
+    let transactions: any[] = [];
+    let start = 0;
+    while (start < txHashes.length) {
+      const txHashesBatch = txHashes.slice(start, start + batchSize);
+
+      const transactionsBatch = await this.indexerService.getTxDetails(txHashesBatch);
+
+      transactions.push(...transactionsBatch);
+      start += batchSize;
+    }
+
+    return transactions;
   }
 }
