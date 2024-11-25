@@ -161,7 +161,7 @@ export class DataIntegrationService {
   }
 
   private async getTxDetailsInBatches(txHashes: string[], batchSize: number) {
-    let transactions: any[] = [];
+    const transactions: any[] = [];
     let start = 0;
     while (start < txHashes.length) {
       const txHashesBatch = txHashes.slice(start, start + batchSize);
