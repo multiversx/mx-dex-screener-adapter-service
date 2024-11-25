@@ -96,4 +96,24 @@ export class IndexerService {
 
     return logs;
   }
+
+  @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
+  public async getTxDetails(txHashes: string[]) {
+    try {
+      const query = ElasticQuery.create()
+        .withPagination({ from: 0, size: 10000 })
+        .withMustCondition([
+          QueryType.Should(txHashes.map(txHash => new MatchQuery("_id", txHash))),
+        ]);
+
+      const transactions = await this.elasticService.getList('operations', 'txHash', query);
+
+      return transactions;
+    } catch (error) {
+      this.logger.error(`Failed to get txDetails`);
+      this.logger.error(error);
+
+      return [];
+    }
+  }
 }
