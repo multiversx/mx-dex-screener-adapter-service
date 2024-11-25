@@ -4,7 +4,7 @@ import {
   IndexerService, JoinExitEvent, LatestBlockResponse,
   MultiversXApiService, PairResponse, SwapEvent, XExchangeService,
 } from "@mvx-monorepo/common";
-import { AddressUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { AddressUtils, BatchUtils, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { IProviderService } from "@mvx-monorepo/common/providers/interface";
 import { GeneralEvent } from "@mvx-monorepo/common/providers/entities/general.event";
 import { OneDexService } from "@mvx-monorepo/common/providers";
@@ -162,14 +162,12 @@ export class DataIntegrationService {
 
   private async getTxDetailsInBatches(txHashes: string[], batchSize: number) {
     const transactions: any[] = [];
-    let start = 0;
-    while (start < txHashes.length) {
-      const txHashesBatch = txHashes.slice(start, start + batchSize);
+    const txHashesBatches = BatchUtils.splitArrayIntoChunks(txHashes, batchSize);
 
+    for (const txHashesBatch of txHashesBatches) {
       const transactionsBatch = await this.indexerService.getTxDetails(txHashesBatch);
 
       transactions.push(...transactionsBatch);
-      start += batchSize;
     }
 
     return transactions;
