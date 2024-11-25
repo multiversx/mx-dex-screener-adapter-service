@@ -18,7 +18,7 @@ export class MultiversXApiService {
   public async getToken(identifier: string): Promise<Token | null> {
     return await this.cacheService.getOrSet(
       CacheInfo.Token(identifier).key,
-      () => this.getTokenRaw(identifier),
+      async () => await this.getTokenRaw(identifier),
       CacheInfo.Token(identifier).ttl,
     );
   }
