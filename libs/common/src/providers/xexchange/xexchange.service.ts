@@ -200,7 +200,6 @@ export class XExchangeService implements IProviderService {
             this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
         }
       }
-
     }
 
     return events;

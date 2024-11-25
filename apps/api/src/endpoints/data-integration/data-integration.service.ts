@@ -142,7 +142,7 @@ export class DataIntegrationService {
   private async updateEventsCaller(events: ({ block: Block } & (SwapEvent | JoinExitEvent))[]) {
     const filteredEvents = events.filter(event => AddressUtils.isSmartContractAddress(event.maker));
 
-    const txHashes = filteredEvents.map(event => event.txnId)
+    const txHashes = filteredEvents.map(event => event.txnId);
 
     const transactions = await this.indexerService.getTxDetails(txHashes);
 
@@ -158,6 +158,5 @@ export class DataIntegrationService {
         }
       }
     }
-    console.log(txToCallerMap)
   }
 }
