@@ -102,6 +102,7 @@ export class IndexerService {
     try {
       const query = ElasticQuery.create()
         .withPagination({ from: 0, size: 10000 })
+        .withFields(['_id', 'txHash', 'sender', 'receiver', 'timestamp'])
         .withMustCondition([
           QueryType.Should(txHashes.map(txHash => new MatchQuery("_id", txHash))),
         ]);
@@ -110,7 +111,7 @@ export class IndexerService {
 
       return transactions;
     } catch (error) {
-      this.logger.error(`Failed to get txDetails`);
+      this.logger.error(`Failed to get transactions with txHashes: ${txHashes}`);
       this.logger.error(error);
 
       return [];
