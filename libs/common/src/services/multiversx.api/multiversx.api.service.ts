@@ -18,7 +18,7 @@ export class MultiversXApiService {
   public async getToken(identifier: string): Promise<Token | null> {
     return await this.cacheService.getOrSet(
       CacheInfo.Token(identifier).key,
-      async () => await this.getTokenRaw(identifier),
+      () => this.getTokenRaw(identifier),
       CacheInfo.Token(identifier).ttl,
     );
   }
@@ -42,7 +42,7 @@ export class MultiversXApiService {
   public async getContractDeployInfo(address: string): Promise<{ deployTxHash?: string, deployedAt?: number }> {
     return await this.cacheService.getOrSet(
       CacheInfo.ContractDeployInfo(address).key,
-      async () => await this.getContractDeployInfoRaw(address),
+      () => this.getContractDeployInfoRaw(address),
       CacheInfo.ContractDeployInfo(address).ttl,
     );
   }

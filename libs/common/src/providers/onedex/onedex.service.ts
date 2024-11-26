@@ -109,7 +109,7 @@ export class OneDexService implements IProviderService {
   public async getPairsMetadata(): Promise<any[]> {
     return await this.cacheService.getOrSet(
       CacheInfo.OneDexPairsMetadata().key,
-      async () => await this.getPairsMetadataRaw(),
+      () => this.getPairsMetadataRaw(),
       CacheInfo.OneDexPairsMetadata().ttl,
     );
   }

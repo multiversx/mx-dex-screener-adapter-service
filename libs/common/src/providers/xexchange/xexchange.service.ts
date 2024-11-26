@@ -80,7 +80,7 @@ export class XExchangeService implements IProviderService {
   public async getPairsMetadata(): Promise<PairMetadata[]> {
     return await this.cacheService.getOrSet(
       CacheInfo.PairsMetadata().key,
-      async () => await this.getPairsMetadataRaw(),
+      () => this.getPairsMetadataRaw(),
       CacheInfo.PairsMetadata().ttl,
     );
   }
@@ -115,7 +115,7 @@ export class XExchangeService implements IProviderService {
   public async getPairFeePercent(pairAddress: string): Promise<number> {
     return await this.cacheService.getOrSet(
       CacheInfo.PairFeePercent(pairAddress).key,
-      async () => await this.getPairFeePercentRaw(pairAddress),
+      () => this.getPairFeePercentRaw(pairAddress),
       CacheInfo.PairFeePercent(pairAddress).ttl,
     );
   }
