@@ -74,6 +74,8 @@ export class XExchangeService implements IProviderService {
       });
     }
 
+    this.logger.log(`Found ${pairs.length} pairs: ${pairs.map((p) => p.address).join(", ")}`);
+
     return pairs;
   }
 
