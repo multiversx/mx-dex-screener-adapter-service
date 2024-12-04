@@ -16,8 +16,8 @@ export class MultiversXApiService {
   ) { }
 
   public async getToken(identifier: string): Promise<Token | null> {
-    const cachedToken = await this.cacheService.get<Token>(CacheInfo.Token(identifier).key);
-    if (cachedToken) {
+    const cachedToken = await this.cacheService.get<Token | null>(CacheInfo.Token(identifier).key);
+    if (cachedToken !== undefined) {
       return cachedToken;
     }
 
