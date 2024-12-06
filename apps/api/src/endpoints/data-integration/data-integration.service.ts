@@ -67,8 +67,11 @@ export class DataIntegrationService {
   }
 
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
+    this.logger.log(`Getting events from block ${fromBlockNonce} to block ${toBlockNonce}`);
+
     const rounds = await this.indexerService.getRounds(fromBlockNonce, toBlockNonce);
     if (rounds.length === 0) {
+      this.logger.error(`No rounds found between block ${fromBlockNonce} and block ${toBlockNonce}`);
       return {
         events: [],
       };
