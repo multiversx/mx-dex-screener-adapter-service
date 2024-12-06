@@ -112,29 +112,34 @@ export class DataIntegrationService {
   private processEvents(generalEvents: GeneralEvent[], provider: IProviderService, rounds: ElasticRound[]): ({ block: Block } & (SwapEvent | JoinExitEvent))[] {
     const events: ({ block: Block } & (SwapEvent | JoinExitEvent))[] = [];
     for (const generalEvent of generalEvents) {
-      let event: SwapEvent | JoinExitEvent;
-      switch (generalEvent.type) {
-        case "swap":
-          event = provider.fromSwapEvent(generalEvent);
-          break;
-        case "addLiquidity":
-        case "removeLiquidity":
-          event = provider.fromAddRemoveLiquidityEvent(generalEvent);
-          break;
-        default:
-          this.logger.error(`Unknown event type: ${generalEvent.type} for event: ${JSON.stringify(generalEvent)}`);
+      try {
+        let event: SwapEvent | JoinExitEvent;
+        switch (generalEvent.type) {
+          case "swap":
+            event = provider.fromSwapEvent(generalEvent);
+            break;
+          case "addLiquidity":
+          case "removeLiquidity":
+            event = provider.fromAddRemoveLiquidityEvent(generalEvent);
+            break;
+          default:
+            this.logger.error(`Unknown event type: ${generalEvent.type} for event: ${JSON.stringify(generalEvent)}`);
+            continue;
+        }
+        const round = rounds.find((round: { timestamp: number }) => round.timestamp === generalEvent.timestamp);
+        if (!round) {
+          this.logger.error(`Round not found for event: ${JSON.stringify(generalEvent)}`);
           continue;
+        }
+        const block = Block.fromElasticRound(round, { onlyRequiredFields: true });
+        events.push({
+          block,
+          ...event,
+        });
+      } catch (error) {
+        this.logger.error(`Error processing event: ${JSON.stringify(generalEvent)}`);
+        this.logger.error(error);
       }
-      const round = rounds.find((round: { timestamp: number }) => round.timestamp === generalEvent.timestamp);
-      if (!round) {
-        this.logger.error(`Round not found for event: ${JSON.stringify(generalEvent)}`);
-        continue;
-      }
-      const block = Block.fromElasticRound(round, { onlyRequiredFields: true });
-      events.push({
-        block,
-        ...event,
-      });
     }
     return events;
   }
