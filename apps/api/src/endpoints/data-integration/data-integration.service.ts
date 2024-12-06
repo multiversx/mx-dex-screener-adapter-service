@@ -134,6 +134,12 @@ export class DataIntegrationService {
         continue;
       }
       const block = Block.fromElasticRound(round, { onlyRequiredFields: true });
+
+      if (event.eventType === 'swap' && event.priceNative === '0') {
+        this.logger.warn(`Swap event price is 0: ${JSON.stringify(event)}`);
+        continue;
+      }
+
       events.push({
         block,
         ...event,
