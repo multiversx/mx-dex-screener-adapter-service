@@ -15,7 +15,8 @@ export class IndexerService {
   @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
   public async getLatestRound(): Promise<ElasticRound> {
     const query = ElasticQuery.create()
-      .withPagination({ from: 1, size: 2 })
+      // .withPagination({ from: 1, size: 2 })
+      .withPagination({ from: 0, size: 1 })
       .withFields(['round', 'epoch', 'timestamp'])
       .withMustCondition(new MatchQuery('shardId', 4294967295))
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
