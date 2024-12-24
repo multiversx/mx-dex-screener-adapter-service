@@ -162,19 +162,35 @@ export class OneDexService implements IProviderService {
           case swapInputTopic:
           case swapOutputTopic:
             const swapEvent = new OneDexSwapEvent(event, log, pairs);
-            events.push(swapEvent);
+            if (swapEvent.pair) {
+              events.push(swapEvent);
+            } else {
+              this.logger.error(`Pair not found for swap event: ${JSON.stringify(event)}`);
+            }
             break;
           case addInitialLiquidityTopic:
             const addInitialLiquidityEvent = new OneDexAddInitialLiquidityEvent(event, log, pairs);
-            events.push(addInitialLiquidityEvent);
+            if (addInitialLiquidityEvent.pair) {
+              events.push(addInitialLiquidityEvent);
+            } else {
+              this.logger.error(`Pair not found for add initial liquidity event: ${JSON.stringify(event)}`);
+            }
             break;
           case addLiquidityTopic:
             const addLiquidityEvent = new OneDexAddLiquidityEvent(event, log, pairs);
-            events.push(addLiquidityEvent);
+            if (addLiquidityEvent.pair) {
+              events.push(addLiquidityEvent);
+            } else {
+              this.logger.error(`Pair not found for add liquidity event: ${JSON.stringify(event)}`);
+            }
             break;
           case removeLiquidityTopic:
             const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, log, pairs);
-            events.push(removeLiquidityEvent);
+            if (removeLiquidityEvent.pair) {
+              events.push(removeLiquidityEvent);
+            } else {
+              this.logger.error(`Pair not found for remove liquidity event: ${JSON.stringify(event)}`);
+            }
             break;
           default:
             this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);

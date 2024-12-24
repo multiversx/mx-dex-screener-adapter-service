@@ -33,6 +33,9 @@ export class DataIntegrationService {
     const round = await this.indexerService.getLatestRound();
 
     const latestBlock = Block.fromElasticRound(round);
+
+    this.logger.log(`Getting latest block. Found block ${latestBlock.blockNumber}`);
+
     return {
       block: latestBlock,
     };
@@ -69,6 +72,7 @@ export class DataIntegrationService {
   public async getEvents(fromBlockNonce: number, toBlockNonce: number): Promise<EventsResponse> {
     const rounds = await this.indexerService.getRounds(fromBlockNonce, toBlockNonce);
     if (rounds.length === 0) {
+      this.logger.error(`No rounds found between block ${fromBlockNonce} and block ${toBlockNonce}`);
       return {
         events: [],
       };
@@ -104,6 +108,8 @@ export class DataIntegrationService {
       lastBlockTimestamp = event.block.blockTimestamp;
     }
 
+    this.logger.log(`Getting events from block ${fromBlockNonce} to block ${toBlockNonce}. Found ${sortedEvents.length} events`);
+
     return {
       events: sortedEvents,
     };
@@ -131,6 +137,12 @@ export class DataIntegrationService {
         continue;
       }
       const block = Block.fromElasticRound(round, { onlyRequiredFields: true });
+
+      if (event.eventType === 'swap' && event.priceNative === '0') {
+        this.logger.warn(`Swap event price is 0: ${JSON.stringify(event)}`);
+        continue;
+      }
+
       events.push({
         block,
         ...event,
