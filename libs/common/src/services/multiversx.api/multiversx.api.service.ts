@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Token } from "./entities";
 import { ApiService } from "@multiversx/sdk-nestjs-http";
 import { ApiConfigService, CacheInfo } from "@mvx-monorepo/common";
-import { OriginLogger } from "@multiversx/sdk-nestjs-common";
+import { Constants, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 
 @Injectable()
@@ -16,11 +16,16 @@ export class MultiversXApiService {
   ) { }
 
   public async getToken(identifier: string): Promise<Token | null> {
-    return await this.cacheService.getOrSet(
-      CacheInfo.Token(identifier).key,
-      async () => await this.getTokenRaw(identifier),
-      CacheInfo.Token(identifier).ttl,
-    );
+    const cachedToken = await this.cacheService.get<Token | null>(CacheInfo.Token(identifier).key);
+    if (cachedToken !== undefined) {
+      return cachedToken;
+    }
+
+    const tokenRaw = await this.getTokenRaw(identifier);
+
+    await this.cacheService.set(CacheInfo.Token(identifier).key, tokenRaw, tokenRaw ? CacheInfo.Token(identifier).ttl : Constants.oneMinute());
+
+    return tokenRaw;
   }
 
   public async getTokenRaw(identifier: string): Promise<Token | null> {
