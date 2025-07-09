@@ -167,38 +167,36 @@ export class XExchangeService implements IProviderService {
     const pairs = await this.getPairs();
     const pairAddresses = pairs.map((p) => p.address);
 
-    const swapTopic = BinaryUtils.base64Encode(PAIR_EVENTS.SWAP);
-    const addLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.ADD_LIQUIDITY);
-    const removeLiquidityTopic = BinaryUtils.base64Encode(PAIR_EVENTS.REMOVE_LIQUIDITY);
+    const swapTopic = BinaryUtils.stringToHex(PAIR_EVENTS.SWAP);
+    const addLiquidityTopic = BinaryUtils.stringToHex(PAIR_EVENTS.ADD_LIQUIDITY);
+    const removeLiquidityTopic = BinaryUtils.stringToHex(PAIR_EVENTS.REMOVE_LIQUIDITY);
     const eventNames = [swapTopic, addLiquidityTopic, removeLiquidityTopic];
 
-    const logs = await this.indexerService.getLogs(before, after, pairAddresses, eventNames);
+    const eventsRaw = await this.indexerService.getEvents(before, after, pairAddresses, eventNames);
 
     const events: (XExchangeSwapEvent | XExchangeAddLiquidityEvent | XExchangeRemoveLiquidityEvent)[] = [];
-    for (const log of logs) {
-      for (const event of log.events) {
-        const pair = pairs.find((p) => p.address === event.address);
-        if (!pair) {
-          this.logger.error(`Pair not found for address ${event.address}`);
-          continue;
-        }
+    for (const event of eventsRaw) {
+      const pair = pairs.find((p) => p.address === event.address);
+      if (!pair) {
+        this.logger.error(`Pair not found for address ${event.address}`);
+        continue;
+      }
 
-        switch (event.topics[0]) {
-          case swapTopic:
-            const swapEvent = new XExchangeSwapEvent(event, log, pair);
-            events.push(swapEvent);
-            break;
-          case addLiquidityTopic:
-            const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, log, pair);
-            events.push(addLiquidityEvent);
-            break;
-          case removeLiquidityTopic:
-            const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, log, pair);
-            events.push(removeLiquidityEvent);
-            break;
-          default:
-            this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
-        }
+      switch (event.topics[0]) {
+        case swapTopic:
+          const swapEvent = new XExchangeSwapEvent(event, pair);
+          events.push(swapEvent);
+          break;
+        case addLiquidityTopic:
+          const addLiquidityEvent = new XExchangeAddLiquidityEvent(event, pair);
+          events.push(addLiquidityEvent);
+          break;
+        case removeLiquidityTopic:
+          const removeLiquidityEvent = new XExchangeRemoveLiquidityEvent(event, pair);
+          events.push(removeLiquidityEvent);
+          break;
+        default:
+          this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
       }
     }
 

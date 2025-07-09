@@ -146,55 +146,54 @@ export class OneDexService implements IProviderService {
   public async getEvents(before: number, after: number): Promise<GeneralEvent[]> {
     const pairs = await this.getPairs();
 
-    const swapInputTopic = BinaryUtils.base64Encode("SwapTokensFixedInputEvent");
-    const swapOutputTopic = BinaryUtils.base64Encode("SwapTokensFixedOutputEvent");
-    const addInitialLiquidityTopic = BinaryUtils.base64Encode("AddInitialLiquidityEvent");
-    const addLiquidityTopic = BinaryUtils.base64Encode("AddLiquidityEvent");
-    const removeLiquidityTopic = BinaryUtils.base64Encode("RemoveLiquidityEvent");
+    const swapInputTopic = BinaryUtils.stringToHex("SwapTokensFixedInputEvent");
+    const swapOutputTopic = BinaryUtils.stringToHex("SwapTokensFixedOutputEvent");
+    const addInitialLiquidityTopic = BinaryUtils.stringToHex("AddInitialLiquidityEvent");
+    const addLiquidityTopic = BinaryUtils.stringToHex("AddLiquidityEvent");
+    const removeLiquidityTopic = BinaryUtils.stringToHex("RemoveLiquidityEvent");
     const eventNames = [swapInputTopic, swapOutputTopic, addInitialLiquidityTopic, addLiquidityTopic, removeLiquidityTopic];
 
-    const logs = await this.indexerService.getLogs(before, after, [this.swapAddress], eventNames);
+    const eventsRaw = await this.indexerService.getEvents(before, after, [this.swapAddress], eventNames);
 
     const events: (OneDexSwapEvent | OneDexAddLiquidityEvent | OneDexAddInitialLiquidityEvent | OneDexRemoveLiquidityEvent)[] = [];
-    for (const log of logs) {
-      for (const event of log.events) {
-        switch (event.topics[0]) {
-          case swapInputTopic:
-          case swapOutputTopic:
-            const swapEvent = new OneDexSwapEvent(event, log, pairs);
-            if (swapEvent.pair) {
-              events.push(swapEvent);
-            } else {
-              this.logger.error(`Pair not found for swap event: ${JSON.stringify(event)}`);
-            }
-            break;
-          case addInitialLiquidityTopic:
-            const addInitialLiquidityEvent = new OneDexAddInitialLiquidityEvent(event, log, pairs);
-            if (addInitialLiquidityEvent.pair) {
-              events.push(addInitialLiquidityEvent);
-            } else {
-              this.logger.error(`Pair not found for add initial liquidity event: ${JSON.stringify(event)}`);
-            }
-            break;
-          case addLiquidityTopic:
-            const addLiquidityEvent = new OneDexAddLiquidityEvent(event, log, pairs);
-            if (addLiquidityEvent.pair) {
-              events.push(addLiquidityEvent);
-            } else {
-              this.logger.error(`Pair not found for add liquidity event: ${JSON.stringify(event)}`);
-            }
-            break;
-          case removeLiquidityTopic:
-            const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, log, pairs);
-            if (removeLiquidityEvent.pair) {
-              events.push(removeLiquidityEvent);
-            } else {
-              this.logger.error(`Pair not found for remove liquidity event: ${JSON.stringify(event)}`);
-            }
-            break;
-          default:
-            this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
-        }
+
+    for (const event of eventsRaw) {
+      switch (event.topics[0]) {
+        case swapInputTopic:
+        case swapOutputTopic:
+          const swapEvent = new OneDexSwapEvent(event, pairs);
+          if (swapEvent.pair) {
+            events.push(swapEvent);
+          } else {
+            this.logger.error(`Pair not found for swap event: ${JSON.stringify(event)}`);
+          }
+          break;
+        case addInitialLiquidityTopic:
+          const addInitialLiquidityEvent = new OneDexAddInitialLiquidityEvent(event, pairs);
+          if (addInitialLiquidityEvent.pair) {
+            events.push(addInitialLiquidityEvent);
+          } else {
+            this.logger.error(`Pair not found for add initial liquidity event: ${JSON.stringify(event)}`);
+          }
+          break;
+        case addLiquidityTopic:
+          const addLiquidityEvent = new OneDexAddLiquidityEvent(event, pairs);
+          if (addLiquidityEvent.pair) {
+            events.push(addLiquidityEvent);
+          } else {
+            this.logger.error(`Pair not found for add liquidity event: ${JSON.stringify(event)}`);
+          }
+          break;
+        case removeLiquidityTopic:
+          const removeLiquidityEvent = new OneDexRemoveLiquidityEvent(event, pairs);
+          if (removeLiquidityEvent.pair) {
+            events.push(removeLiquidityEvent);
+          } else {
+            this.logger.error(`Pair not found for remove liquidity event: ${JSON.stringify(event)}`);
+          }
+          break;
+        default:
+          this.logger.error(`Unknown event topic ${event.topics[0]}. Event: ${JSON.stringify(event)}`);
       }
     }
 
