@@ -1,6 +1,6 @@
 import { ElasticQuery, ElasticService, ElasticSortOrder, MatchQuery, QueryType, RangeGreaterThanOrEqual, RangeLowerThanOrEqual, RangeQuery } from "@multiversx/sdk-nestjs-elastic";
 import { Injectable } from "@nestjs/common";
-import { ElasticLog, ElasticRound } from "./entities";
+import { ElasticEvent, ElasticRound } from "./entities";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { LogPerformanceAsync, MetricsEvents } from "@mvx-monorepo/common";
 
@@ -63,40 +63,32 @@ export class IndexerService {
   }
 
   @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)
-  public async getLogs(before: number, after: number, addresses: string[], eventNames: string[]): Promise<ElasticLog[]> {
+  public async getEvents(before: number, after: number, addresses: string[], eventNames: string[]): Promise<ElasticEvent[]> {
     const query = ElasticQuery.create()
       .withPagination({ from: 0, size: 10000 })
       .withMustCondition([
-        QueryType.Should(addresses.map(address => QueryType.Nested("events", [new MatchQuery("events.address", address)]))),
-        QueryType.Should(eventNames.map(eventName => QueryType.Nested('events', [new MatchQuery('events.topics', eventName)]))),
+        QueryType.Should(addresses.map(address => new MatchQuery("address", address))),
+        QueryType.Should(eventNames.map(eventName => new MatchQuery('topics', eventName))),
       ])
       .withDateRangeFilter('timestamp', before, after)
       .withSort([{ name: 'timestamp', order: ElasticSortOrder.descending }]);
 
-    const logsRaw: ElasticLog[] = [];
+    const eventsRaw: ElasticEvent[] = [];
     // eslint-disable-next-line require-await
-    await this.elasticService.getScrollableList('logs', 'txHash', query, async (logs: ElasticLog[]) => {
-      logsRaw.push(...logs);
+    await this.elasticService.getScrollableList('events', 'txHash_shardId_order', query, async (events: ElasticEvent[]) => {
+      eventsRaw.push(...events);
     }, {
       scrollTimeout: '10m',
     });
 
-    const logs = logsRaw.map((log, index) => {
-      const events = log.events.filter((event: any) => {
-        const isSearchedAddress = addresses.includes(event.address);
-        const isSearchedEvent = event.topics.length > 0 && eventNames.includes(event.topics[0]);
+    const events = eventsRaw.filter((event: any) => {
+      const isSearchedAddress = addresses.includes(event.address);
+      const isSearchedEvent = event.topics.length > 0 && eventNames.includes(event.topics[0]);
 
-        return isSearchedAddress && isSearchedEvent;
-      });
-
-      return {
-        ...log,
-        order: index,
-        events,
-      };
+      return isSearchedAddress && isSearchedEvent;
     });
 
-    return logs;
+    return events;
   }
 
   @LogPerformanceAsync(MetricsEvents.SetIndexerDuration)

@@ -93,6 +93,14 @@ export class DataIntegrationService {
       if (a.block.blockTimestamp !== b.block.blockTimestamp) {
         return a.block.blockTimestamp - b.block.blockTimestamp;
       }
+      if (a.txnIndex !== b.txnIndex) {
+        return a.txnIndex - b.txnIndex;
+      }
+
+      if (a.eventIndex !== b.eventIndex) {
+        return a.eventIndex - b.eventIndex;
+      }
+
       return a.txnId.localeCompare(b.txnId);
     });
 

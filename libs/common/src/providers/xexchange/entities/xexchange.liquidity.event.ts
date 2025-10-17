@@ -1,5 +1,5 @@
 import { AddressType, BigUIntType, BinaryCodec, FieldDefinition, StructType, TokenIdentifierType, U64Type } from "@multiversx/sdk-core/out";
-import { ElasticEvent, ElasticLog } from "@mvx-monorepo/common";
+import { ElasticEvent } from "@mvx-monorepo/common";
 import { GeneralEvent } from "../../entities/general.event";
 import { XExchangePair } from "./xexchange.pair";
 
@@ -21,7 +21,7 @@ export class XExchangeLiquidityEvent extends GeneralEvent {
   eventOrder: number;
   pair: XExchangePair;
 
-  constructor(event: ElasticEvent, log: ElasticLog, pair: XExchangePair, eventType: "addLiquidity" | "removeLiquidity") {
+  constructor(event: ElasticEvent, pair: XExchangePair, eventType: "addLiquidity" | "removeLiquidity") {
     super(event, eventType);
 
     const decodedEvent = this.decodeEvent();
@@ -51,8 +51,8 @@ export class XExchangeLiquidityEvent extends GeneralEvent {
     this.epoch = decodedEvent.epoch.toNumber();
     this.timestamp = decodedEvent.timestamp.toNumber();
 
-    this.txHash = log.originalTxHash ?? log.txHash;
-    this.txOrder = log.order;
+    this.txHash = event.originalTxHash ?? event.txHash;
+    this.txOrder = event.txOrder;
     this.eventOrder = event.order;
     this.pair = pair;
   }
@@ -62,7 +62,7 @@ export class XExchangeLiquidityEvent extends GeneralEvent {
       throw new Error('Invalid data field');
     }
 
-    const data = Buffer.from(this.data, 'base64');
+    const data = Buffer.from(this.data, 'hex');
     const codec = new BinaryCodec();
 
     const eventStruct = this.getStructure();
