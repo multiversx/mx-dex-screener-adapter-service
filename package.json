@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24.22.1"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build api && nest build offline-jobs && nest build common",
