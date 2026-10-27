@@ -1,0 +1,24 @@
+name: Docker build
+
+on:
+  pull_request:
+    branches: [main, development]
+    paths:
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docker-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build -t service:test .
+
+      - name: Check build output
+        run: |
+          docker run --rm --entrypoint sh service:test -c 'test -f /app/dist/apps/api/src/main.js && test -f /app/dist/apps/offline-jobs/src/main.js'
