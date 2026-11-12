@@ -1,4 +1,4 @@
-FROM node:24.22.1-alpine AS build
+FROM node:24.22.3-alpine AS build
 
 WORKDIR /app
 RUN chown -R node:node /app
@@ -10,7 +10,7 @@ RUN npm ci
 
 RUN npm run build
 
-FROM node:24.22.1-alpine
+FROM node:24.22.3-alpine
 
 WORKDIR /app
 RUN chown -R node:node /app
